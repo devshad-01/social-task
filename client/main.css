@@ -3,19 +3,265 @@
 @plugin "flowbite/plugin";
 @source "../node_modules/flowbite";
 
+/* Mobile Task Management Design System */
 @theme {
-    --color-primary-50: #eff6ff;
-    --color-primary-100: #dbeafe;
-    --color-primary-200: #bfdbfe;
-    --color-primary-300: #93c5fd;
-    --color-primary-400: #60a5fa;
-    --color-primary-500: #3b82f6;
-    --color-primary-600: #2563eb;
-    --color-primary-700: #1d4ed8;
-    --color-primary-800: #1e40af;
-    --color-primary-900: #1e3a8a;
-    
-    --font-sans: 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'system-ui', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'sans-serif', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-    --font-body: 'Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'system-ui', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'sans-serif', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-    --font-mono: 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace';
+  /* Color System - Updated to match design system */
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #6366f1;
+  --color-primary-600: #4f46e5;
+  --color-primary-700: #4338ca;
+  --color-primary-800: #3730a3;
+  --color-primary-900: #312e81;
+  
+  --color-accent-50: #fffbeb;
+  --color-accent-100: #fef3c7;
+  --color-accent-200: #fde68a;
+  --color-accent-300: #fcd34d;
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #d97706;
+  --color-accent-700: #b45309;
+  --color-accent-800: #92400e;
+  --color-accent-900: #78350f;
+  
+  /* Semantic Colors */
+  --color-success-500: #10b981;
+  --color-warning-500: #f59e0b;
+  --color-error-500: #ef4444;
+  --color-info-500: #3b82f6;
+  
+  /* Typography */
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  --font-mono: 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace';
+  
+  /* Spacing Scale */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  --spacing-2xl: 24px;
+  --spacing-3xl: 32px;
+  --spacing-4xl: 40px;
+  --spacing-5xl: 48px;
+  --spacing-6xl: 64px;
+  
+  /* Border Radius */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-base: 300ms;
+  --duration-slow: 500ms;
+}
+
+/* Base Component Styles */
+body {
+  font-family: var(--font-sans);
+  background-color: #f9fafb;
+  color: #111827;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Task Management UI Components */
+.task-card {
+  @apply bg-white rounded-xl shadow-sm border border-gray-200 p-5;
+  @apply hover:shadow-md active:scale-[0.98] transition-all duration-300;
+  min-height: 44px; /* Touch target minimum */
+}
+
+.task-card-elevated {
+  @apply bg-white rounded-xl shadow-md border-0 p-5;
+  @apply hover:shadow-lg active:scale-[0.98] transition-all duration-300;
+}
+
+.btn-primary {
+  @apply bg-primary-500 text-white font-semibold px-6 py-3 rounded-xl;
+  @apply hover:bg-primary-600 active:scale-[0.98] transition-all duration-150;
+  @apply focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  @apply disabled:opacity-50 disabled:cursor-not-allowed;
+  min-height: 44px;
+}
+
+.btn-secondary {
+  @apply bg-gray-100 text-gray-700 font-medium px-6 py-3 rounded-xl;
+  @apply hover:bg-gray-200 active:scale-[0.98] transition-all duration-150;
+  @apply focus:ring-2 focus:ring-gray-300 focus:ring-offset-2;
+  min-height: 44px;
+}
+
+.input-base {
+  @apply w-full px-4 py-3 rounded-lg border border-gray-300 bg-white;
+  @apply focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+  @apply disabled:bg-gray-50 disabled:opacity-60;
+  @apply text-base transition-all duration-150;
+  min-height: 44px;
+}
+
+/* Category Tags */
+.tag-work {
+  @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg;
+  @apply text-sm font-medium text-white bg-primary-500;
+}
+
+.tag-business {
+  @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg;
+  @apply text-sm font-medium text-white bg-accent-500;
+}
+
+.tag-personal {
+  @apply inline-flex items-center gap-2 px-4 py-2 rounded-lg;
+  @apply text-sm font-medium text-white bg-gray-700;
+}
+
+/* Navigation */
+.bottom-nav {
+  @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200;
+  @apply flex items-center justify-around px-4 py-2;
+  height: 80px;
+  z-index: 1020;
+}
+
+.nav-item {
+  @apply flex flex-col items-center gap-1 p-2 rounded-lg;
+  @apply transition-all duration-150 cursor-pointer;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.nav-item.active {
+  @apply bg-primary-500 text-white;
+}
+
+.nav-item-icon {
+  @apply w-6 h-6;
+}
+
+.nav-item-label {
+  @apply text-xs font-medium;
+}
+
+/* Progress Indicators */
+.progress-circular {
+  @apply w-10 h-10 border-4 border-gray-200 border-t-primary-500 rounded-full animate-spin;
+}
+
+.progress-linear {
+  @apply w-full h-1 bg-gray-200 rounded-full overflow-hidden;
+}
+
+.progress-linear-fill {
+  @apply h-full bg-primary-500 rounded-full transition-all duration-300;
+}
+
+/* Typography Classes */
+.h1 {
+  @apply text-3xl font-bold leading-tight tracking-tight;
+}
+
+.h2 {
+  @apply text-2xl font-semibold leading-tight tracking-tight;
+}
+
+.h3 {
+  @apply text-xl font-semibold leading-snug;
+}
+
+.h4 {
+  @apply text-lg font-semibold leading-normal;
+}
+
+.body {
+  @apply text-base font-normal leading-relaxed;
+}
+
+.body-small {
+  @apply text-sm font-normal leading-normal;
+}
+
+.caption {
+  @apply text-xs font-medium leading-tight tracking-wide;
+}
+
+.label {
+  @apply text-sm font-medium leading-normal tracking-wide;
+}
+
+/* Mobile Layout Utilities */
+.mobile-container {
+  @apply max-w-full mx-auto px-5;
+}
+
+.mobile-section {
+  @apply mb-8;
+}
+
+.mobile-card-grid {
+  @apply flex flex-col gap-4;
+}
+
+.mobile-stack {
+  @apply flex flex-col gap-6;
+}
+
+/* Status Indicators */
+.status-draft {
+  @apply bg-gray-100 text-gray-700 px-3 py-1 rounded-lg text-sm font-medium;
+}
+
+.status-scheduled {
+  @apply bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm font-medium;
+}
+
+.status-completed {
+  @apply bg-green-100 text-green-700 px-3 py-1 rounded-lg text-sm font-medium;
+}
+
+.status-overdue {
+  @apply bg-red-100 text-red-700 px-3 py-1 rounded-lg text-sm font-medium;
+}
+
+/* Social Platform Indicators */
+.platform-facebook {
+  @apply bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-medium;
+}
+
+.platform-instagram {
+  @apply bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-lg text-xs font-medium;
+}
+
+/* Focus Ring for Accessibility */
+.focus-ring:focus {
+  @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+  .mobile-card-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+  }
+  
+  .mobile-container {
+    @apply max-w-3xl;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobile-container {
+    @apply max-w-4xl;
+  }
+  
+  .mobile-card-grid {
+    @apply grid-cols-3;
+  }
 }
