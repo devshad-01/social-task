@@ -16,7 +16,7 @@ This project is a modern full-stack starter template built with:
 - Clean folder structure with JSX files and Tailwind classes
 - PostCSS config using new Tailwind plugin system
 - Ready to extend with layout, grid, buttons, navbar, and animations
-
+https://github.com/devshad-01/Meteor-JSX-Flowbit-Tailwind.git
 ---
 
 ## 📁 Project Structure
