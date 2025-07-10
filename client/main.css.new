@@ -447,16 +447,6 @@ body {
   padding: 0 var(--spacing-xs);
 }
 
-/* Notification Button */
-.notification-button {
-  background: transparent;
-  border: none;
-  padding: 0;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-}
-
 /* Mobile Sidebar */
 .sidebar-backdrop {
   position: fixed;
@@ -1042,120 +1032,6 @@ body {
   color: var(--neutral-500);
   font-size: 0.75rem;
   margin: 0;
-}
-
-/* Additional Icon Sizes */
-.icon-sm {
-  width: 16px;
-  height: 16px;
-}
-
-.icon-md {
-  width: 20px;
-  height: 20px;
-  color: var(--neutral-600);
-}
-
-.icon-lg {
-  width: 24px;
-  height: 24px;
-}
-
-.icon-xl {
-  width: 48px;
-  height: 48px;
-}
-
-/* Additional Button Styles */
-.btn-full {
-  width: 100%;
-  text-align: center;
-  padding: var(--spacing-sm) var(--spacing-base);
-}
-
-/* Dropdown Components */
-.dropdown-panel {
-  position: absolute;
-  right: 0;
-  margin-top: var(--spacing-sm);
-  width: 320px;
-  background-color: white;
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-xl);
-  border: 1px solid var(--neutral-200);
-  z-index: 50;
-  overflow: hidden;
-  animation: fadeIn var(--transition-normal) ease-in-out;
-}
-
-.dropdown-header {
-  padding: var(--spacing-base);
-  border-bottom: 1px solid var(--neutral-200);
-}
-
-.dropdown-header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.dropdown-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--neutral-800);
-  margin: 0;
-}
-
-.dropdown-body {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.dropdown-footer {
-  padding: var(--spacing-base);
-  border-top: 1px solid var(--neutral-200);
-}
-
-/* Enhanced Notification Styles */
-.notification-empty {
-  padding: var(--spacing-xl);
-  text-align: center;
-}
-
-.notification-items {
-  display: flex;
-  flex-direction: column;
-  border-top: 1px solid var(--neutral-100);
-}
-
-.notification-item {
-  padding: var(--spacing-base);
-  cursor: pointer;
-  transition: background-color var(--transition-normal);
-  border-bottom: 1px solid var(--neutral-100);
-}
-
-.icon-circle {
-  width: 32px;
-  height: 32px;
-  background-color: var(--primary-100);
-  border-radius: var(--radius-full);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.icon-circle .icon {
-  color: var(--primary-600);
-}
-
-.unread-indicator {
-  width: 8px;
-  height: 8px;
-  background-color: var(--primary-500);
-  border-radius: var(--radius-full);
-  flex-shrink: 0;
-  margin-top: var(--spacing-sm);
 }
 
 /* Safe Area Support for iOS */
