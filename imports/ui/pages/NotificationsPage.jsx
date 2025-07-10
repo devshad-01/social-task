@@ -51,7 +51,7 @@ export const NotificationsPage = () => {
             >
               <div className={`notification-icon notification-${notification.type}`}>
                 {notification.type === 'task' && <Icons.tasks />}
-                {notification.type === 'comment' && <Icons.messageCircle />}
+                {notification.type === 'comment' && <Icons.user />}
                 {notification.type === 'completion' && <Icons.check />}
               </div>
               <div className="notification-content">
