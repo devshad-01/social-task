@@ -116,3 +116,72 @@ You can deploy this app using:
 
 🧾 License
 MIT © Fidel Kisevu
+
+## Task Management User Stories & Features
+
+This project supports a robust, agency-grade task management system for IT companies and digital teams. Key user stories and features include:
+
+### Admin/Supervisor
+- Add client companies and manage their accounts
+- Create tasks (with images/files), assign to team members or roles
+- Set task priorities (high/medium/low), deadlines, and reminders
+- Track task status: draft, scheduled, in progress, completed, overdue
+- Comment on tasks, mention team members, upload/attach files
+- Filter/search tasks by client, assignee, status, or due date
+- Receive notifications for completed/overdue tasks
+- View analytics (tasks per week, overdue, team workload)
+- Duplicate/template common tasks for recurring work
+
+### Team Members
+- See assigned tasks in dashboard/calendar view
+- View task details, attachments, due dates, and client/project info
+- Update task status (in progress, blocked, completed)
+- Comment, ask questions, upload deliverables
+- Receive reminders for upcoming/overdue tasks
+- See task history and recent changes
+
+### General/Advanced
+- Task dependencies (blockers)
+- Subtasks/checklists
+- Time tracking
+- Role-based permissions
+- Mobile PWA support
+- Activity feed (recent actions)
+- Bulk actions (complete, assign, delete)
+- Integrations (calendar, Slack, email)
+
+See `.github/copilot/TasksuserStories.md` for the full list of user stories and details.
+
+## Recommended Implementation Phases
+
+**Phase 1: Core PWA Setup & Task Basics**
+- Set up PWA manifest, service worker, and offline support
+- Implement user authentication (admin/team)
+- Build basic task CRUD (create, view, update, delete)
+- Assign tasks to users
+- Show assigned tasks on dashboard (mobile-first)
+
+**Phase 2: Notifications (MVP)**
+- In-app notification bell with unread count
+- Send notification when a task is assigned or completed
+- Show notification list/center
+- Mark notifications as read
+
+**Phase 3: Task Details & Collaboration**
+- Task details view (attachments, comments, status updates)
+- Mark task as completed/in progress/blocked
+- Upload files to tasks
+- Comment and @mention on tasks
+
+**Phase 4: Advanced PWA & Notification Features**
+- Push notifications (web/mobile)
+- Notification preferences (email, push, in-app)
+- Real-time updates (websockets or polling)
+- Reminders for due/overdue tasks
+
+**Phase 5: Analytics, Bulk Actions, and Integrations**
+- Task analytics and activity feed
+- Bulk actions (complete, assign, delete)
+- Integrate with calendar, Slack, or email
+
+_See `.github/copilot/TasksuserStories.md` for full user stories and features._
