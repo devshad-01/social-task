@@ -7,6 +7,12 @@ export const Icons = {
     </svg>
   ),
 
+  heart: ({ className = "w-5 h-5", ...props }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 20 20" {...props}>
+    <path d="M10 3.22l-.61-.6a4.8 4.8 0 00-6.81 0c-1.86 1.86-1.86 4.88 0 6.74l6.81 6.81a.75.75 0 001.06 0l6.81-6.81c1.86-1.86 1.86-4.88 0-6.74a4.8 4.8 0 00-6.81 0l-.61.61z" />
+  </svg>
+),
+
   tasks: ({ className = "w-5 h-5", ...props }) => (
     <svg className={className} fill="currentColor" viewBox="0 0 20 20" {...props}>
       <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
@@ -102,4 +108,16 @@ export const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6-6m2 2l-6 6m-2 2h2v2h-2v-2z" />
     </svg>
   ),
+  download: ({ className = "w-5 h-5", ...props }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 20 20" {...props}>
+    <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L10 12.586l2.293-2.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414zM10 3a1 1 0 011 1v7a1 1 0 11-2 0V4a1 1 0 011-1z" clipRule="evenodd" />
+  </svg>
+),
+eye: ({ className = "w-5 h-5", ...props }) => (
+  <svg className={className} fill="currentColor" viewBox="0 0 20 20" {...props}>
+    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+  </svg>
+),
+
 };
