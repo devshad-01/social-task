@@ -64,10 +64,12 @@ export const TaskCard = ({
             
             {task.client && (
               <div className="flex items-center space-x-2 mb-2">
+                {console.log(task.client)}
                 <Avatar 
                   src={task.client.logoUrl} 
                   alt={task.client.name}
                   size="sm"
+                  
                   fallback={task.client.name.charAt(0)}
                 />
                 <span className="text-sm text-gray-600">{task.client.name}</span>
