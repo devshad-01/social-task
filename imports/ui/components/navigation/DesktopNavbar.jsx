@@ -12,7 +12,7 @@ export const DesktopNavbar = () => {
 
   // Filter navigation items for desktop navbar
   const mainNavItems = navigationItems.filter(item => 
-    ['dashboard', 'tasks', 'clients', 'team', 'analytics'].includes(item.id)
+    ['dashboard', 'tasks', 'clients', 'team', 'analytics','posts'].includes(item.id)
   );
 
   return (

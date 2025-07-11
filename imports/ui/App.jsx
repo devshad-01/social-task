@@ -11,6 +11,9 @@ import { AnalyticsPage } from './pages/AnalyticsPage';
 import { AuthRequired } from './components/AuthRequired';
 import { AuthContainer } from './components/auth/AuthContainer';
 import { useTokenRoutes } from './hooks/useTokenRoutes';
+import { PostsPage } from './pages/PostsPage';
+import { AddPosts } from './pages/AddPosts'; 
+
 
 export const App = () => {
   const { currentForm, tokenData } = useTokenRoutes();
@@ -68,6 +71,9 @@ export const App = () => {
         <Route path="clients" element={<ClientsPage />} />
         <Route path="team" element={<TeamPage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
+        <Route path="posts" element={<PostsPage />} />
+        <Route path="add-post" element={<AddPosts />} />
+    
       </Route>
       
       {/* Fallback route */}

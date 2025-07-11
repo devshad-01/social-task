@@ -50,12 +50,13 @@
             "apiUrl": "https://api005.backblazeb2.com",
             "downloadUrl": "https://f005.backblazeb2.com"
         },
-        "cloudinary": {
-            "cloudname": "dtwtcdkrl",
-            "apikey": "975887372581848",
-            "apisecret": "iU9oeTRMdPx3yCSy3Dp4zol0ul0"
+            "cloudinary": {
+            "cloud_name": "dtwtcdkrl",
+            "api_key": "975887372581848",
+            "api_secret": "iU9oeTRMdPx3yCSy3Dp4zol0ul0"
         }
-    },
+
+            },
     "packages": {
         "email": {
             "service": "brevo",

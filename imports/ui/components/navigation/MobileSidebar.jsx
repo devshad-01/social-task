@@ -29,7 +29,7 @@ export const MobileSidebar = () => {
 
   // Filter admin-only items for sidebar
   const sidebarItems = navigationItems.filter(item => 
-    ['clients', 'team', 'analytics'].includes(item.id)
+    ['clients', 'team', 'analytics', 'posts'].includes(item.id)
   );
 
   const handleItemClick = (itemId) => {

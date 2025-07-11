@@ -5,6 +5,10 @@ import { Accounts } from 'meteor/accounts-base';
 import '../imports/api/users/methods';
 import '../imports/api/users/publications';
 import '../imports/api/users/server/hooks';
+import '../imports/api/posts/methods';
+import '../imports/api/posts/server/publications';
+import './cloudinary_methods.js';
+
 
 Meteor.startup(async () => {
   // Configure accounts settings
