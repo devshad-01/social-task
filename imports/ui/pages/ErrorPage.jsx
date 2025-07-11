@@ -9,11 +9,11 @@ export const ErrorPage = ({ error, onRetry, onGoHome }) => {
       case '404':
         return Icons.search;
       case '500':
-        return Icons.alertCircle;
+        return Icons.bell;  // Using bell since alertCircle doesn't exist in Icons
       case 'network':
-        return Icons.wifi;
+        return Icons.eye;  // Using eye since wifi doesn't exist in Icons
       default:
-        return Icons.alertTriangle;
+        return Icons.bell;  // Using bell since alertTriangle doesn't exist in Icons
     }
   };
 
@@ -75,7 +75,7 @@ export const ErrorPage = ({ error, onRetry, onGoHome }) => {
               variant="outline"
               className="w-full sm:w-auto"
             >
-              <Icons.refresh className="w-4 h-4 mr-2" />
+              <Icons.chevronDown className="w-4 h-4 mr-2" />  {/* Using chevronDown since refresh doesn't exist */}
               Try Again
             </Button>
           )}

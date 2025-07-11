@@ -18,8 +18,16 @@ export const DesktopNavbar = () => {
   return (
     <nav className="desktop-navbar">
       <div className="desktop-navbar-container">
-        <div className="desktop-navbar-left">
-          <div className="desktop-logo">Posty</div>
+        <div className="desktop-navbar-top">
+          {/* Logo */}
+          <div className="desktop-logo">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-lg">P</span>
+              </div>
+              <span className="text-xl font-bold text-gray-800">Posty</span>
+            </div>
+          </div>
 
           {/* Main Navigation */}
           <div className="desktop-nav-items">
@@ -36,14 +44,19 @@ export const DesktopNavbar = () => {
                 >
                   <Icon className="desktop-nav-icon" />
                   <span className="desktop-nav-label">{item.label}</span>
+                  {item.badge && item.badge > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                      {item.badge > 99 ? '99+' : item.badge}
+                    </span>
+                  )}
                 </Link>
               );
             })}
           </div>
         </div>
 
-        {/* Right side - Search, Notifications, User Menu */}
-        <div className="desktop-navbar-right">
+        {/* Bottom section with user info */}
+        <div className="desktop-navbar-bottom">
           {/* Search Bar */}
           <div className="desktop-search-container">
             <div className="search-input-wrapper">
@@ -58,9 +71,6 @@ export const DesktopNavbar = () => {
             </div>
           </div>
 
-          {/* Notifications */}
-          <NotificationBell />
-
           {/* User Menu */}
           <div className="user-menu-container">
             <button
@@ -71,7 +81,7 @@ export const DesktopNavbar = () => {
                 {user.avatar ? (
                   <img src={user.avatar} alt={user.name} className="avatar-image" />
                 ) : (
-                  <span>{user.name.split(' ').map(n => n[0]).join('')}</span>
+                  <span className="text-sm font-medium">{user.name.split(' ').map(n => n[0]).join('')}</span>
                 )}
               </div>
               <div className="user-info">
@@ -83,7 +93,9 @@ export const DesktopNavbar = () => {
 
             {/* User Menu Dropdown */}
             {showUserMenu && (
-              <UserMenu />
+              <div className="absolute bottom-full right-0 mb-2 z-50">
+                <UserMenu onClose={() => setShowUserMenu(false)} />
+              </div>
             )}
           </div>
         </div>

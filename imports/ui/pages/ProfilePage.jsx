@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
-import { ProfileUpdateForm } from '../components/profile/ProfileUpdateForm';
-import { ChangePasswordForm } from '../components/profile/ChangePasswordForm';
+import ProfileUpdateForm from '../components/profile/ProfileUpdateForm';
+import ChangePasswordForm from '../components/profile/ChangePasswordForm';
 import { Icons } from '../components/Icons';
 import { useAuthContext } from '../context/AuthContext';
 
 export const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('profile');
-  const { user, isLoading } = useAuthContext();
+  const { user, isLoading, resendVerificationEmail } = useAuthContext();
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: Icons.user },
-    { id: 'security', label: 'Security', icon: Icons.lock }
+    { id: 'security', label: 'Security', icon: Icons.settings }
   ];
 
   // Show loading spinner while checking auth
@@ -48,7 +48,7 @@ export const ProfilePage = () => {
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
             >
-              <tab.icon className="w-4 h-4" />
+              {React.createElement(tab.icon, { className: "w-4 h-4" })}
               <span>{tab.label}</span>
             </button>
           ))}
@@ -106,7 +106,7 @@ export const ProfilePage = () => {
                     Your email is not verified
                   </div>
                   <button
-                    onClick={() => useAuthContext().resendVerificationEmail()}
+                    onClick={() => resendVerificationEmail()}
                     className="px-4 py-2 bg-primary-600 border border-transparent rounded-md font-medium text-sm text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
                   >
                     Resend Verification Email
