@@ -1,0 +1,69 @@
+{
+    "public": {
+        "requireEmailVerification": true,
+        "app": {
+            "name": "Posty",
+            "version": "1.0.0",
+            "storage": {
+                "default": "cloudinary",
+                "options": {
+                    "cloudinary": {
+                        "defaultFolder": "community_uploads"
+                    },
+                    "backblaze": {
+                        "bucketName": "demo-deploy"
+                    }
+                }
+            }
+        },
+        "security": {
+            "maxLoginAttempts": 5,
+            "lockoutDuration": 900000,
+            "sessionTimeout": 604800000,
+            "passwordResetTimeout": 86400000
+        }
+    },
+    "private": {
+        "security": {
+            "bcryptRounds": 12,
+            "rateLimiting": {
+                "enabled": true,
+                "authMethods": {
+                    "perConnection": 5,
+                    "perMinute": 60
+                }
+            }
+        },
+        "email": {
+            "from": "mutinda.shadrach10@gmail.com"
+        },
+        "paystack": {
+            "secretKey": "sk_test_2ff4a8530ec3585191352d0ec9819df3d029810c",
+            "publicKey": "pk_test_58683312993d86d1cfe8d318ee9b62ac8ebb0005",
+            "callbackUrl": "https://6bea-2c0f-2a80-23b0-8108-f45b-8013-b551-7f51.ngrok-free.app/payment-success",
+            "baseURL": "https://api.paystack.co"
+        },
+        "backblaze": {
+            "keyId": "0053d4e0404e2470000000006",
+            "applicationKey": "K005AbhzhOfLfpuD/DaHZ8RRnVMx7G8",
+            "bucketName": "demo-deploy",
+            "apiUrl": "https://api005.backblazeb2.com",
+            "downloadUrl": "https://f005.backblazeb2.com"
+        },
+        "cloudinary": {
+            "cloudname": "dtwtcdkrl",
+            "apikey": "975887372581848",
+            "apisecret": "iU9oeTRMdPx3yCSy3Dp4zol0ul0"
+        }
+    },
+    "packages": {
+        "email": {
+            "service": "brevo",
+            "host": "smtp-relay.brevo.com",
+            "port": 587,
+            "secure": false,
+            "user": "SMTP_USER",
+            "password": "SMTP_PASSWORD"
+        }
+    }
+}

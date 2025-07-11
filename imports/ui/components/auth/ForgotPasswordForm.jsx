@@ -1,49 +1,37 @@
 import React, { useState } from 'react';
-import { AuthLayout } from './AuthLayout';
+import { Meteor } from 'meteor/meteor';
 
-export const ForgotPasswordForm = ({ onResetPassword, onBackToLogin }) => {
-  const [formData, setFormData] = useState({
-    email: ''
-  });
-  const [errors, setErrors] = useState({});
+export const ForgotPasswordForm = ({ onBackToLogin }) => {
+  const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  console.log('[ForgotPasswordForm] Component rendered');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    console.log('[ForgotPasswordForm] Form submitted:', email);
     
     setLoading(true);
+    setError('');
+    
     try {
-      await onResetPassword(formData.email);
+      await new Promise((resolve, reject) => {
+        Meteor.call('users.forgotPassword', { email }, (error, result) => {
+          if (error) {
+            console.error('[ForgotPasswordForm] Forgot password error:', error);
+            reject(error);
+          } else {
+            console.log('[ForgotPasswordForm] Forgot password successful:', result);
+            resolve(result);
+          }
+        });
+      });
       setSuccess(true);
-    } catch (error) {
-      setErrors({ submit: error.message });
+    } catch (err) {
+      console.error('[ForgotPasswordForm] Forgot password failed:', err);
+      setError(err.reason || err.message);
     } finally {
       setLoading(false);
     }
@@ -51,107 +39,90 @@ export const ForgotPasswordForm = ({ onResetPassword, onBackToLogin }) => {
 
   if (success) {
     return (
-      <AuthLayout 
-        title="Check your email" 
-        subtitle="We've sent a password reset link to your email"
-      >
-        <div className="mt-8 text-center">
-          <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-            <div className="mx-auto h-12 w-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Email sent successfully!</h3>
-            <p className="text-sm text-gray-600 mb-6">
-              We've sent a password reset link to <strong>{formData.email}</strong>. 
-              Please check your email and follow the instructions to reset your password.
-            </p>
-            <div className="space-y-3">
-              <button
-                onClick={onBackToLogin}
-                className="w-full py-2 px-4 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
-              >
-                Back to sign in
-              </button>
-              <button
-                onClick={() => setSuccess(false)}
-                className="w-full py-2 px-4 text-sm font-medium text-primary-600 hover:text-primary-700 transition-colors"
-              >
-                Send another email
-              </button>
-            </div>
+      <div className="w-full max-w-md mx-auto">
+        <div className="bg-white shadow-lg rounded-lg p-8 text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
           </div>
+          <h2 className="text-xl font-semibold text-neutral-800 mb-2">Check your email</h2>
+          <p className="text-neutral-600 mb-6">
+            We've sent a password reset link to <strong>{email}</strong>
+          </p>
+          <p className="text-sm text-neutral-500 mb-6">
+            Didn't receive the email? Check your spam folder or try again.
+          </p>
+          <button
+            onClick={onBackToLogin}
+            className="w-full bg-gradient-primary text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all"
+          >
+            Back to Sign In
+          </button>
         </div>
-      </AuthLayout>
+      </div>
     );
   }
 
   return (
-    <AuthLayout 
-      title="Forgot your password?" 
-      subtitle="Enter your email address and we'll send you a link to reset your password"
-    >
-      <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-        <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-          <div className="space-y-4">
-            {errors.submit && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                {errors.submit}
-              </div>
-            )}
-            
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
-                  errors.email ? 'border-red-300' : 'border-gray-300'
-                }`}
-                placeholder="Enter your email"
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
-            </div>
-          </div>
+    <div className="w-full max-w-md mx-auto">
+      <div className="bg-white shadow-lg rounded-lg p-8">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gradient">Posty</h1>
+          <h2 className="text-xl font-semibold text-neutral-800 mt-2">Reset your password</h2>
+          <p className="text-neutral-600 mt-1">Enter your email to receive a reset link</p>
         </div>
 
-        <div className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-2">
+              Email Address
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              placeholder="Enter your email"
+              disabled={loading}
+              required
+            />
+          </div>
+
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={loading}
-            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-gradient-primary text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                 Sending reset link...
-              </>
+              </div>
             ) : (
               'Send reset link'
             )}
           </button>
-          
+        </form>
+
+        <div className="mt-6 text-center">
           <button
-            type="button"
             onClick={onBackToLogin}
-            className="w-full py-2 px-4 text-sm font-medium text-gray-600 hover:text-gray-700 transition-colors"
+            className="text-primary-600 hover:text-primary-700 font-medium"
+            disabled={loading}
           >
-            Back to sign in
+            ← Back to Sign In
           </button>
         </div>
-      </form>
-    </AuthLayout>
+      </div>
+    </div>
   );
 };

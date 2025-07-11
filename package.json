@@ -10,11 +10,26 @@
   "dependencies": {
     "@babel/runtime": "^7.20.7",
     "@tailwindcss/postcss": "^4.1.11",
+    "axios": "^1.10.0",
+    "backblaze-b2": "^1.7.1",
+    "browser-image-compression": "^2.0.2",
+    "cloudinary": "^2.7.0",
+    "cloudinary-core": "^2.13.1",
+    "date-fns": "^2.30.0",
+    "emoji-picker-react": "^4.12.2",
     "flowbite": "^3.1.2",
+    "lucide-react": "^0.511.0",
     "meteor-node-stubs": "^1.2.5",
+    "postcss": "^8.5.3",
+    "postcss-load-config": "^6.0.1",
+    "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.14.0"
+    "react-router-dom": "^6.14.0",
+    "react-window": "^1.8.11",
+    "react-window-infinite-loader": "^1.0.10",
+    "simpl-schema": "^3.4.6",
+    "zod": "^4.0.5"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.21",

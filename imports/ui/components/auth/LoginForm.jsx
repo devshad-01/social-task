@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { AuthLayout } from './AuthLayout';
+import { Meteor } from 'meteor/meteor';
 
-export const LoginForm = ({ onLogin, onForgotPassword, onSignUp }) => {
+export const LoginForm = ({ onSwitchToSignUp, onSwitchToForgotPassword }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -9,6 +9,8 @@ export const LoginForm = ({ onLogin, onForgotPassword, onSignUp }) => {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+
+  console.log('[LoginForm] Component rendered');
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -22,154 +24,135 @@ export const LoginForm = ({ onLogin, onForgotPassword, onSignUp }) => {
     }
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-    
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    console.log('[LoginForm] Form submitted:', formData.email);
     
     setLoading(true);
+    setErrors({});
+    
     try {
-      await onLogin(formData);
+      await new Promise((resolve, reject) => {
+        Meteor.loginWithPassword(formData.email, formData.password, (error) => {
+          if (error) {
+            console.error('[LoginForm] Login error:', error);
+            reject(error);
+          } else {
+            console.log('[LoginForm] Login successful:', formData.email);
+            resolve();
+          }
+        });
+      });
     } catch (error) {
-      setErrors({ submit: error.message });
+      console.error('[LoginForm] Login failed:', error);
+      setErrors({ submit: error.reason || error.message });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <AuthLayout 
-      title="Welcome back" 
-      subtitle="Sign in to your account to continue"
-    >
-      <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-        <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-          <div className="space-y-4">
-            {errors.submit && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                {errors.submit}
-              </div>
-            )}
-            
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
-                  errors.email ? 'border-red-300' : 'border-gray-300'
-                }`}
-                placeholder="Enter your email"
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                value={formData.password}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
-                  errors.password ? 'border-red-300' : 'border-gray-300'
-                }`}
-                placeholder="Enter your password"
-              />
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="rememberMe"
-                  type="checkbox"
-                  checked={formData.rememberMe}
-                  onChange={handleChange}
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                  Remember me
-                </label>
-              </div>
-
-              <button
-                type="button"
-                onClick={onForgotPassword}
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-              >
-                Forgot password?
-              </button>
-            </div>
-          </div>
+    <div className="w-full max-w-md mx-auto">
+      <div className="bg-white shadow-lg rounded-lg p-8">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gradient">Posty</h1>
+          <h2 className="text-xl font-semibold text-neutral-800 mt-2">Welcome back</h2>
+          <p className="text-neutral-600 mt-1">Sign in to your account to continue</p>
         </div>
 
-        <div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-2">
+              Email Address
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              placeholder="Enter your email"
+              disabled={loading}
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-neutral-700 mb-2">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              placeholder="Enter your password"
+              disabled={loading}
+              required
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                name="rememberMe"
+                checked={formData.rememberMe}
+                onChange={handleChange}
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 rounded"
+                disabled={loading}
+              />
+              <span className="ml-2 text-sm text-neutral-600">Remember me</span>
+            </label>
+            
+            <button
+              type="button"
+              onClick={onSwitchToForgotPassword}
+              className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+              disabled={loading}
+            >
+              Forgot password?
+            </button>
+          </div>
+
+          {errors.submit && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600">{errors.submit}</p>
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={loading}
-            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-gradient-primary text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                 Signing in...
-              </>
+              </div>
             ) : (
               'Sign in'
             )}
           </button>
-        </div>
+        </form>
 
-        <div className="text-center">
-          <p className="text-sm text-gray-600">
+        <div className="mt-6 text-center">
+          <p className="text-neutral-600">
             Don't have an account?{' '}
             <button
-              type="button"
-              onClick={onSignUp}
-              className="font-medium text-primary-600 hover:text-primary-700"
+              onClick={onSwitchToSignUp}
+              className="text-primary-600 hover:text-primary-700 font-medium"
+              disabled={loading}
             >
               Sign up
             </button>
           </p>
         </div>
-      </form>
-    </AuthLayout>
+      </div>
+    </div>
   );
 };

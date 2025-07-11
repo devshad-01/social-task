@@ -5,6 +5,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import { App } from '/imports/ui/App';
 import { NavigationProvider } from '/imports/ui/context/NavigationContext';
 import { ResponsiveProvider } from '/imports/ui/context/ResponsiveContext';
+import { AuthProvider } from '/imports/ui/context/AuthContext';
 import './main.css';
 
 Meteor.startup(() => {
@@ -12,11 +13,13 @@ Meteor.startup(() => {
   const root = createRoot(container);
   root.render(
     <Router>
-      <ResponsiveProvider>
-        <NavigationProvider>
-          <App />
-        </NavigationProvider>
-      </ResponsiveProvider>
+      <AuthProvider>
+        <ResponsiveProvider>
+          <NavigationProvider>
+            <App />
+          </NavigationProvider>
+        </ResponsiveProvider>
+      </AuthProvider>
     </Router>
   );
 });
