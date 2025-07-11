@@ -15,7 +15,7 @@ export const BottomTabBar = () => {
     <nav className="bottom-tab-bar">
       <div className="bottom-tab-container safe-area-bottom">
         {mainTabs.map((item) => {
-          const Icon = Icons[item.icon];
+          const Icon = item.icon && Icons[item.icon];
           const isActive = activeTab === item.id;
           const hasNotificationBadge = item.badge && item.badge > 0;
 
