@@ -196,7 +196,7 @@ export const AnalyticsPage = () => {
                   <p className="text-2xl font-bold">{formatNumber(analyticsData.overview.totalFollowers)}</p>
                 </div>
                 <div className="text-right">
-                  <Icons.Users className="h-8 w-8 text-blue-500" />
+                  <Icons.users className="h-8 w-8 text-blue-500" />
                   <p className={`text-sm ${getGrowthColor(analyticsData.overview.followerGrowth)}`}>
                     +{analyticsData.overview.followerGrowth}%
                   </p>
@@ -211,7 +211,7 @@ export const AnalyticsPage = () => {
                   <p className="text-2xl font-bold">{formatNumber(analyticsData.overview.totalEngagement)}</p>
                 </div>
                 <div className="text-right">
-                  <Icons.Heart className="h-8 w-8 text-red-500" />
+                  <Icons.heart className="h-8 w-8 text-red-500" />
                   <p className={`text-sm ${getGrowthColor(analyticsData.overview.engagementRate)}`}>
                     +{analyticsData.overview.engagementRate}%
                   </p>
@@ -226,7 +226,7 @@ export const AnalyticsPage = () => {
                   <p className="text-2xl font-bold">{formatNumber(analyticsData.overview.totalReach)}</p>
                 </div>
                 <div className="text-right">
-                  <Icons.Eye className="h-8 w-8 text-green-500" />
+                  <Icons.eye className="h-8 w-8 text-green-500" />
                   <p className={`text-sm ${getGrowthColor(analyticsData.overview.reachGrowth)}`}>
                     +{analyticsData.overview.reachGrowth}%
                   </p>
@@ -241,7 +241,7 @@ export const AnalyticsPage = () => {
                   <p className="text-2xl font-bold">{formatNumber(analyticsData.overview.totalImpressions)}</p>
                 </div>
                 <div className="text-right">
-                  <Icons.BarChart className="h-8 w-8 text-purple-500" />
+                  <Icons.chart className="h-8 w-8 text-purple-500" />
                   <p className={`text-sm ${getGrowthColor(analyticsData.overview.impressionGrowth)}`}>
                     +{analyticsData.overview.impressionGrowth}%
                   </p>
@@ -435,11 +435,11 @@ export const AnalyticsPage = () => {
       <div className="mt-8 flex justify-center">
         <div className="flex gap-4">
           <Button variant="outline" className="flex items-center gap-2">
-            <Icons.Download className="h-4 w-4" />
+            <Icons.download className="h-4 w-4" />
             Export PDF
           </Button>
           <Button variant="outline" className="flex items-center gap-2">
-            <Icons.Download className="h-4 w-4" />
+            <Icons.download className="h-4 w-4" />
             Export CSV
           </Button>
         </div>
