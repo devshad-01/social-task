@@ -213,7 +213,7 @@ export const TeamPage = () => {
       <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <div className="flex flex-col sm:flex-row gap-4 flex-1">
           <div className="relative flex-1 max-w-sm">
-            <Icons.Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Icons.search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               type="text"
               placeholder="Search team members..."
@@ -242,7 +242,7 @@ export const TeamPage = () => {
         </div>
         
         <Button onClick={() => setIsInviteModalOpen(true)} className="flex items-center gap-2">
-          <Icons.Plus className="h-4 w-4" />
+          <Icons.plus className="h-4 w-4" />
           Invite Member
         </Button>
       </div>
@@ -307,12 +307,12 @@ export const TeamPage = () => {
         </div>
       ) : (
         <EmptyState
-          icon={Icons.Users}
+          icon={Icons.users}
           title="No team members found"
           description={searchTerm ? 'Try adjusting your search terms' : 'Invite your first team member to get started'}
           action={
             <Button onClick={() => setIsInviteModalOpen(true)} className="flex items-center gap-2">
-              <Icons.Plus className="h-4 w-4" />
+              <Icons.plus className="h-4 w-4" />
               Invite Member
             </Button>
           }
