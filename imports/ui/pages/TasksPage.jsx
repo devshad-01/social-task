@@ -1,14 +1,8 @@
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '../components/common/Card';
 import { Button } from '../components/common/Button';
-import { Badge } from '../components/common/Badge';
-import { Modal } from '../components/common/Modal';
-import { Avatar } from '../components/common/Avatar';
-import { Input, TextArea, Select } from '../components/common/Input';
-import { EmptyState } from '../components/common/EmptyState';
+import { Input } from '../components/common/Input';
 import { TaskCard } from '../components/tasks/TaskCard';
 import { TaskModal } from '../components/tasks/TaskModal';
-import { TaskFilters } from '../components/tasks/TaskFilters';
 import { Icons } from '../components/Icons';
 
 export const TasksPage = () => {
@@ -30,7 +24,11 @@ export const TasksPage = () => {
         name: 'Sarah Johnson',
         avatar: '/images/avatar1.jpg'
       },
-      client: 'Fashion Brand Co.',
+      client: {
+        id: 1,
+        name: 'Fashion Brand Co.',
+        logoUrl: '/images/client1.jpg'
+      },
       platform: 'Instagram',
       tags: ['content', 'design', 'instagram'],
       createdAt: '2024-01-10',
@@ -47,7 +45,11 @@ export const TasksPage = () => {
         name: 'Mike Chen',
         avatar: '/images/avatar2.jpg'
       },
-      client: 'Tech Startup Inc.',
+      client: {
+        id: 2,
+        name: 'Tech Startup Inc.',
+        logoUrl: '/images/client2.jpg'
+      },
       platform: 'Facebook',
       tags: ['ads', 'facebook', 'campaign'],
       createdAt: '2024-01-08',
@@ -64,7 +66,11 @@ export const TasksPage = () => {
         name: 'Emily Davis',
         avatar: '/images/avatar3.jpg'
       },
-      client: 'Restaurant Chain',
+      client: {
+        id: 3,
+        name: 'Restaurant Chain',
+        logoUrl: '/images/client3.jpg'
+      },
       platform: 'Multiple',
       tags: ['analytics', 'report', 'metrics'],
       createdAt: '2024-01-05',
@@ -81,7 +87,11 @@ export const TasksPage = () => {
         name: 'David Wilson',
         avatar: '/images/avatar4.jpg'
       },
-      client: 'B2B Software Co.',
+      client: {
+        id: 4,
+        name: 'B2B Software Co.',
+        logoUrl: '/images/client4.jpg'
+      },
       platform: 'LinkedIn',
       tags: ['content', 'calendar', 'linkedin'],
       createdAt: '2024-01-09',
@@ -98,7 +108,11 @@ export const TasksPage = () => {
         name: 'Lisa Garcia',
         avatar: '/images/avatar5.jpg'
       },
-      client: 'Youth Brand LLC',
+      client: {
+        id: 5,
+        name: 'Youth Brand LLC',
+        logoUrl: '/images/client5.jpg'
+      },
       platform: 'TikTok',
       tags: ['tiktok', 'challenge', 'viral'],
       createdAt: '2024-01-11',
@@ -110,7 +124,7 @@ export const TasksPage = () => {
     const matchesFilter = filter === 'all' || task.status === filter;
     const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         task.client.toLowerCase().includes(searchTerm.toLowerCase());
+                         task.client.name.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
@@ -143,69 +157,109 @@ export const TasksPage = () => {
   const stats = getTaskStats();
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Tasks</h1>
-        <p className="text-gray-600">Manage your social media tasks and projects</p>
-      </div>
-
-      {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Card className="p-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
-            <div className="text-sm text-gray-500">Total Tasks</div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-            <div className="text-sm text-gray-500">Pending</div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-orange-600">{stats.in_progress}</div>
-            <div className="text-sm text-gray-500">In Progress</div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
-            <div className="text-sm text-gray-500">Completed</div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <div className="flex flex-col sm:flex-row gap-4 flex-1">
-          <div className="relative flex-1 max-w-sm">
-            <Icons.Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="Search tasks..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <TaskFilters
-            currentFilter={filter}
-            onFilterChange={setFilter}
-            taskStats={stats}
-          />
+    <div className="page-container">
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Tasks</h1>
+          <p className="page-subtitle">Manage your social media tasks and projects</p>
         </div>
-        
-        <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
-          <Icons.Plus className="h-4 w-4" />
+        <Button onClick={() => setIsCreateModalOpen(true)} className="button-primary">
+          {React.createElement(Icons.plus, { className: "button-icon" })}
           New Task
         </Button>
       </div>
 
+      {/* Stats Overview */}
+      <div className="dashboard-stats">
+        <div className="stat-card">
+          <div className="stat-icon">
+            <svg className="icon-lg" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <div className="stat-value">{stats.total}</div>
+            <div className="stat-label">Total Tasks</div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">
+            <svg className="icon-lg" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <div className="stat-value" style={{ color: 'var(--status-warning)' }}>{stats.pending}</div>
+            <div className="stat-label">Pending</div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">
+            <svg className="icon-lg" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414 1.414L10.586 9.5 9.293 8.207a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4a1 1 0 00-1.414-1.414L11 9.586l-2.293-2.293z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <div className="stat-value" style={{ color: 'var(--secondary-600)' }}>{stats.in_progress}</div>
+            <div className="stat-label">In Progress</div>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">
+            <svg className="icon-lg" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <div className="stat-value" style={{ color: 'var(--status-success)' }}>{stats.completed}</div>
+            <div className="stat-label">Completed</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="tasks-filter-bar">
+        <div className="search-input-wrapper">
+          {React.createElement(Icons.search, { className: "search-icon" })}
+          <Input
+            type="text"
+            placeholder="Search tasks..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+          />
+        </div>
+        <div className="filter-tabs">
+          <button
+            className={`filter-tab ${filter === 'all' ? 'filter-tab-active' : ''}`}
+            onClick={() => setFilter('all')}
+          >
+            All ({stats.total})
+          </button>
+          <button
+            className={`filter-tab ${filter === 'pending' ? 'filter-tab-active' : ''}`}
+            onClick={() => setFilter('pending')}
+          >
+            Pending ({stats.pending})
+          </button>
+          <button
+            className={`filter-tab ${filter === 'in_progress' ? 'filter-tab-active' : ''}`}
+            onClick={() => setFilter('in_progress')}
+          >
+            In Progress ({stats.in_progress})
+          </button>
+          <button
+            className={`filter-tab ${filter === 'completed' ? 'filter-tab-active' : ''}`}
+            onClick={() => setFilter('completed')}
+          >
+            Completed ({stats.completed})
+          </button>
+        </div>
+      </div>
+
       {/* Tasks Grid */}
       {filteredTasks.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="task-list">
           {filteredTasks.map((task) => (
             <TaskCard
               key={task.id}
@@ -215,17 +269,19 @@ export const TasksPage = () => {
           ))}
         </div>
       ) : (
-        <EmptyState
-          icon={Icons.CheckSquare}
-          title="No tasks found"
-          description={searchTerm ? 'Try adjusting your search terms' : 'Create your first task to get started'}
-          action={
-            <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
-              <Icons.Plus className="h-4 w-4" />
-              Create Task
-            </Button>
-          }
-        />
+        <div className="empty-state">
+          <div className="empty-icon">
+            {React.createElement(Icons.check, { className: "icon-xl" })}
+          </div>
+          <h3 className="empty-text">No tasks found</h3>
+          <p className="empty-text" style={{ fontSize: '0.875rem', marginTop: 'var(--spacing-sm)' }}>
+            {searchTerm ? 'Try adjusting your search terms' : 'Create your first task to get started'}
+          </p>
+          <Button onClick={() => setIsCreateModalOpen(true)} className="button-primary" style={{ marginTop: 'var(--spacing-base)' }}>
+            {React.createElement(Icons.plus, { className: "button-icon" })}
+            Create Task
+          </Button>
+        </div>
       )}
 
       {/* Create Task Modal */}
@@ -233,7 +289,7 @@ export const TasksPage = () => {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSave={handleCreateTask}
-        title="Create New Task"
+        mode="create"
       />
 
       {/* Task Details Modal */}
@@ -243,7 +299,7 @@ export const TasksPage = () => {
           onClose={() => setSelectedTask(null)}
           onSave={handleUpdateTask}
           task={selectedTask}
-          title="Edit Task"
+          mode="edit"
         />
       )}
     </div>
