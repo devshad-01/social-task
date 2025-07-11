@@ -119,5 +119,31 @@ eye: ({ className = "w-5 h-5", ...props }) => (
     <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
   </svg>
 ),
+// NEW ICONS YOU NEED
+  facebook: ({ className = "w-5 h-5", ...props }) => (
+    <svg className={className} fill="currentColor" viewBox="0 0 20 20" {...props}>
+      <path fillRule="evenodd" d="M20 10c0-5.523-4.477-10-10-10S0 4.477 0 10c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V10h2.54V7.71c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.262c-1.225 0-1.628.761-1.628 1.547V10h2.77l-.443 2.89h-2.327v6.987C16.343 19.128 20 14.991 20 10z" clipRule="evenodd" />
+    </svg>
+  ),
+  instagram: ({ className = "w-5 h-5", ...props }) => (
+    <svg className={className} fill="currentColor" viewBox="0 0 20 20" {...props}>
+      <path fillRule="evenodd" d="M10 0C4.477 0 0 4.477 0 10s4.477 10 10 10 10-4.477 10-10S15.523 0 10 0zm3.5 1.5a.5.5 0 00-.5.5v2a.5.5 0 00.5.5h2a.5.5 0 00.5-.5v-2a.5.5 0 00-.5-.5h-2zM10 4a6 6 0 100 12 6 6 0 000-12zm0 2a4 4 0 100 8 4 4 0 000-8z" clipRule="evenodd" />
+    </svg>
+  ),
+  link: ({ className = "w-5 h-5", ...props }) => (
+    <svg className={className} fill="currentColor" viewBox="0 0 20 20" {...props}>
+      <path fillRule="evenodd" d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H7a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+    </svg>
+  ),
+  arrowLeft: ({ className = "w-5 h-5", ...props }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+    </svg>
+  ),
+   share: ({ className = "w-5 h-5", ...props }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.882 13.064 9 12.735 9 12c0-.735-.118-1.064-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l.036.023c.312.196.65.316 1.01.316.36 0 .698-.12 1.01-.316l.036-.023M15 12c0 .735.118 1.064.316 1.342m0-2.684a3 3 0 110-2.684m0 2.684l.036.023c.312.196.65.316 1.01.316.36 0 .698-.12 1.01-.316l.036-.023M12 6.5v11M12 6.5c-.735 0-1.064.118-1.342.316m1.342-.316a3 3 0 110-2.684m0 2.684l.023.036c.196.312.316.65.316 1.01.001.36-.118.698-.316 1.01l-.023.036M12 17.5v-11M12 17.5c-.735 0-1.064-.118-1.342-.316m1.342.316a3 3 0 110 2.684m0-2.684l.023-.036c.196-.312.316-.65.316-1.01.001-.36-.118-.698-.316-1.01l-.023-.036" />
+    </svg>
+  ),
 
 };

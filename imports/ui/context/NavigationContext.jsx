@@ -42,6 +42,8 @@ export const NavigationProvider = ({ children }) => {
     else if (path === '/clients') setActiveTab('clients');
     else if (path === '/team') setActiveTab('team');
     else if (path === '/analytics') setActiveTab('analytics');
+    else if (path === '/posts') setActiveTab('posts');
+
   }, [location]);
 
   // Mock notifications - replace with actual data
@@ -123,6 +125,12 @@ export const NavigationProvider = ({ children }) => {
         label: 'Analytics',
         icon: 'chart',
         path: '/analytics',
+        roles: ['admin']
+      }, {
+        id: 'posts',
+        label: 'Posts',
+        icon: 'plus',
+        path: '/posts',
         roles: ['admin']
       }
     ];
