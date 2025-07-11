@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { ProfileUpdateForm } from '../components/profile/ProfileUpdateForm';
-import { ChangePasswordForm } from '../components/profile/ChangePasswordForm';
+import ProfileUpdateForm from '../components/profile/ProfileUpdateForm';
+import ChangePasswordForm from '../components/profile/ChangePasswordForm';
 import { Icons } from '../components/Icons';
 import { useAuthContext } from '../context/AuthContext';
 

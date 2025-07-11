@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useContext } from 'react';
+import React, { useRef, useEffect, useContext, useState } from 'react';
 import { Icons } from '../Icons';
 import { NavigationContext } from '../../context/NavigationContext';
 import { useAuthContext } from '../../context/AuthContext';
@@ -9,6 +9,16 @@ export const UserMenu = ({ onClose }) => {
   const { logout } = useAuthContext();
   const navigate = useNavigate();
   const menuRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   
   const handleClose = () => {
     if (onClose) {
@@ -99,8 +109,6 @@ export const UserMenu = ({ onClose }) => {
     }
     handleClose();
   };
-
-  const isMobile = window.innerWidth < 768;
 
   if (isMobile) {
     return (
