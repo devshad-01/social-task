@@ -1,95 +1,29 @@
 import React, { useState } from 'react';
-import { ProfileCard } from '../components/profile/ProfileCard';
-import { ProfileEditModal } from '../components/profile/ProfileEditModal';
-import { ProfileActivity } from '../components/profile/ProfileActivity';
-import { ProfileSettings } from '../components/profile/ProfileSettings';
+import { ProfileUpdateForm } from '../components/profile/ProfileUpdateForm';
+import { ChangePasswordForm } from '../components/profile/ChangePasswordForm';
 import { Icons } from '../components/Icons';
+import { useAuthContext } from '../context/AuthContext';
 
 export const ProfilePage = () => {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
-  const [user, setUser] = useState({
-    id: 1,
-    name: 'John Doe',
-    email: 'john@example.com',
-    role: 'Admin',
-    department: 'Management',
-    location: 'San Francisco, CA',
-    phone: '+1 (555) 123-4567',
-    joinDate: 'January 2022',
-    avatar: null,
-    bio: 'Experienced social media manager with a passion for creating engaging content and building strong online communities.',
-    skills: ['Social Media Strategy', 'Content Creation', 'Team Leadership', 'Analytics'],
-    stats: {
-      tasksCompleted: 248,
-      projectsDelivered: 24,
-      hoursLogged: 1240,
-      successRate: '98%'
-    }
-  });
-
-  const [settings, setSettings] = useState({
-    emailNotifications: true,
-    pushNotifications: true,
-    taskReminders: true,
-    profileVisibility: 'team',
-    showEmail: true,
-    theme: 'light',
-    language: 'en'
-  });
-
-  const mockActivities = [
-    {
-      type: 'task_completed',
-      title: 'Task Completed',
-      description: 'Completed "Instagram Content Calendar" for Fashion Brand Co.',
-      timestamp: '2 hours ago',
-      badge: 'High Priority'
-    },
-    {
-      type: 'task_created',
-      title: 'New Task Created',
-      description: 'Created "Facebook Ad Campaign" for Tech Startup Inc.',
-      timestamp: '1 day ago',
-      badge: 'Marketing'
-    },
-    {
-      type: 'client_added',
-      title: 'Client Added',
-      description: 'Added new client "Youth Brand LLC" to the system',
-      timestamp: '3 days ago',
-      badge: 'New Client'
-    },
-    {
-      type: 'profile_updated',
-      title: 'Profile Updated',
-      description: 'Updated profile information and skills',
-      timestamp: '1 week ago'
-    }
-  ];
-
-  const handleEditProfile = () => {
-    setIsEditModalOpen(true);
-  };
-
-  const handleSaveProfile = async (updatedUser) => {
-    // Here you would typically make an API call to update the user
-    console.log('Saving profile:', updatedUser);
-    setUser(updatedUser);
-  };
-
-  const handleSettingChange = (key, value) => {
-    setSettings(prev => ({
-      ...prev,
-      [key]: value
-    }));
-  };
+  const { user, isLoading } = useAuthContext();
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: Icons.user },
-    { id: 'activity', label: 'Activity', icon: Icons.clock },
-    { id: 'settings', label: 'Settings', icon: Icons.settings }
+    { id: 'security', label: 'Security', icon: Icons.lock }
   ];
+
+  // Show loading spinner while checking auth
+  if (isLoading) {
+    return (
+      <div className="flex h-full w-full items-center justify-center p-8">
+        <svg className="animate-spin h-12 w-12 text-primary-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -124,36 +58,65 @@ export const ProfilePage = () => {
       {/* Tab Content */}
       <div>
         {activeTab === 'profile' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2">
-              <ProfileCard user={user} onEdit={handleEditProfile} />
+          <div className="max-w-4xl">
+            <div className="mb-8">
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                  {user?.profile?.avatar ? (
+                    <img src={user.profile.avatar} alt={user?.profile?.fullName || 'User'} className="h-full w-full object-cover" />
+                  ) : (
+                    <svg className="h-12 w-12 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                  )}
+                </div>
+                <div>
+                  <h2 className="text-xl font-medium text-gray-900">{user?.profile?.fullName || 'User'}</h2>
+                  <p className="text-sm text-gray-500">{user?.emails?.[0]?.address}</p>
+                  <p className="text-sm text-gray-500">
+                    Role: {user?.profile?.role || 'User'} {user?.profile?.department ? `• ${user.profile.department}` : ''}
+                  </p>
+                </div>
+              </div>
             </div>
-            <div>
-              <ProfileActivity activities={mockActivities.slice(0, 3)} />
-            </div>
+            <ProfileUpdateForm />
           </div>
         )}
 
-        {activeTab === 'activity' && (
+        {activeTab === 'security' && (
           <div className="max-w-4xl">
-            <ProfileActivity activities={mockActivities} />
-          </div>
-        )}
-
-        {activeTab === 'settings' && (
-          <div className="max-w-4xl">
-            <ProfileSettings settings={settings} onSettingChange={handleSettingChange} />
+            <ChangePasswordForm />
+            
+            <div className="mt-8 bg-white shadow rounded-lg p-6">
+              <h2 className="text-xl font-medium text-gray-900 mb-4">Email Verification</h2>
+              
+              {user?.emails?.[0]?.verified ? (
+                <div className="flex items-center text-sm text-green-700">
+                  <svg className="h-5 w-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Your email is verified
+                </div>
+              ) : (
+                <div>
+                  <div className="flex items-center text-sm text-amber-700 mb-4">
+                    <svg className="h-5 w-5 mr-2 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    Your email is not verified
+                  </div>
+                  <button
+                    onClick={() => useAuthContext().resendVerificationEmail()}
+                    className="px-4 py-2 bg-primary-600 border border-transparent rounded-md font-medium text-sm text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+                  >
+                    Resend Verification Email
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
-
-      {/* Edit Modal */}
-      <ProfileEditModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        user={user}
-        onSave={handleSaveProfile}
-      />
     </div>
   );
 };

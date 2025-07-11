@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-import { AuthLayout } from './AuthLayout';
+import { Meteor } from 'meteor/meteor';
 
-export const SignUpForm = ({ onSignUp, onLogin }) => {
+export const SignUpForm = ({ onSwitchToLogin }) => {
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'team-member', // default role
     agreeToTerms: false
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  console.log('[SignUpForm] Component rendered');
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -25,212 +27,196 @@ export const SignUpForm = ({ onSignUp, onLogin }) => {
     }
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-    
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
-    } else if (formData.fullName.trim().length < 2) {
-      newErrors.fullName = 'Full name must be at least 2 characters';
-    }
-    
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-    
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-    
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Please confirm your password';
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-    
-    if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = 'You must agree to the terms and conditions';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
+    console.log('[SignUpForm] Form submitted:', formData.email);
     
     setLoading(true);
+    setErrors({});
+    
     try {
-      await onSignUp(formData);
+      await new Promise((resolve, reject) => {
+        Meteor.call('users.register', formData, (error, result) => {
+          if (error) {
+            console.error('[SignUpForm] Registration error:', error);
+            reject(error);
+          } else {
+            console.log('[SignUpForm] Registration successful:', result);
+            resolve(result);
+          }
+        });
+      });
+      setSuccess(true);
     } catch (error) {
-      setErrors({ submit: error.message });
+      console.error('[SignUpForm] Registration failed:', error);
+      setErrors({ submit: error.reason || error.message });
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <AuthLayout 
-      title="Create your account" 
-      subtitle="Join the team and start managing social media posts"
-    >
-      <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-        <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-          <div className="space-y-4">
-            {errors.submit && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-                {errors.submit}
-              </div>
-            )}
-            
-            <div>
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name
-              </label>
-              <input
-                id="fullName"
-                name="fullName"
-                type="text"
-                autoComplete="name"
-                value={formData.fullName}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
-                  errors.fullName ? 'border-red-300' : 'border-gray-300'
-                }`}
-                placeholder="Enter your full name"
-              />
-              {errors.fullName && (
-                <p className="mt-1 text-sm text-red-600">{errors.fullName}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                value={formData.email}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
-                  errors.email ? 'border-red-300' : 'border-gray-300'
-                }`}
-                placeholder="Enter your email"
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="new-password"
-                value={formData.password}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
-                  errors.password ? 'border-red-300' : 'border-gray-300'
-                }`}
-                placeholder="Create a password"
-              />
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                Confirm Password
-              </label>
-              <input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className={`w-full px-4 py-3 border rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors ${
-                  errors.confirmPassword ? 'border-red-300' : 'border-gray-300'
-                }`}
-                placeholder="Confirm your password"
-              />
-              {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
-              )}
-            </div>
-
-            <div className="flex items-center">
-              <input
-                id="agreeToTerms"
-                name="agreeToTerms"
-                type="checkbox"
-                checked={formData.agreeToTerms}
-                onChange={handleChange}
-                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-              />
-              <label htmlFor="agreeToTerms" className="ml-2 block text-sm text-gray-700">
-                I agree to the{' '}
-                <a href="#" className="text-primary-600 hover:text-primary-700 font-medium">
-                  Terms and Conditions
-                </a>{' '}
-                and{' '}
-                <a href="#" className="text-primary-600 hover:text-primary-700 font-medium">
-                  Privacy Policy
-                </a>
-              </label>
-            </div>
-            {errors.agreeToTerms && (
-              <p className="text-sm text-red-600">{errors.agreeToTerms}</p>
-            )}
+  if (success) {
+    return (
+      <div className="w-full max-w-md mx-auto">
+        <div className="bg-white shadow-lg rounded-lg p-8 text-center">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
           </div>
+          <h2 className="text-xl font-semibold text-neutral-800 mb-2">Account created successfully!</h2>
+          <p className="text-neutral-600 mb-6">
+            We've sent a verification email to <strong>{formData.email}</strong>. 
+            Please check your inbox and click the verification link.
+          </p>
+          <button
+            onClick={onSwitchToLogin}
+            className="w-full bg-gradient-primary text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all"
+          >
+            Continue to Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-md mx-auto">
+      <div className="bg-white shadow-lg rounded-lg p-8">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gradient">Posty</h1>
+          <h2 className="text-xl font-semibold text-neutral-800 mt-2">Create your account</h2>
+          <p className="text-neutral-600 mt-1">Join the team and start managing social media posts</p>
         </div>
 
-        <div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label htmlFor="fullName" className="block text-sm font-medium text-neutral-700 mb-2">
+              Full Name
+            </label>
+            <input
+              type="text"
+              id="fullName"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              placeholder="Enter your full name"
+              disabled={loading}
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-neutral-700 mb-2">
+              Email Address
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              placeholder="Enter your email"
+              disabled={loading}
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-neutral-700 mb-2">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              placeholder="Create a strong password"
+              disabled={loading}
+              required
+            />
+          </div>
+
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-neutral-700 mb-2">
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              placeholder="Confirm your password"
+              disabled={loading}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="flex items-start">
+              <input
+                type="checkbox"
+                name="agreeToTerms"
+                checked={formData.agreeToTerms}
+                onChange={handleChange}
+                className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 rounded mt-1"
+                disabled={loading}
+                required
+              />
+              <span className="ml-2 text-sm text-neutral-600">
+                I agree to the{' '}
+                <a href="/terms" className="text-primary-600 hover:text-primary-700 font-medium">
+                  Terms of Service
+                </a>{' '}
+                and{' '}
+                <a href="/privacy" className="text-primary-600 hover:text-primary-700 font-medium">
+                  Privacy Policy
+                </a>
+              </span>
+            </label>
+          </div>
+
+          {errors.submit && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-sm text-red-600">{errors.submit}</p>
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={loading}
-            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full bg-gradient-primary text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                 Creating account...
-              </>
+              </div>
             ) : (
               'Create account'
             )}
           </button>
-        </div>
+        </form>
 
-        <div className="text-center">
-          <p className="text-sm text-gray-600">
+        <div className="mt-6 text-center">
+          <p className="text-neutral-600">
             Already have an account?{' '}
             <button
-              type="button"
-              onClick={onLogin}
-              className="font-medium text-primary-600 hover:text-primary-700"
+              onClick={onSwitchToLogin}
+              className="text-primary-600 hover:text-primary-700 font-medium"
+              disabled={loading}
             >
               Sign in
             </button>
           </p>
         </div>
-      </form>
-    </AuthLayout>
+      </div>
+    </div>
   );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from './components/layout/AppLayout';
 import { DashboardPage } from './pages/DashboardPage';
 import { TasksPage } from './pages/TasksPage';
@@ -8,21 +8,70 @@ import { ProfilePage } from './pages/ProfilePage';
 import { ClientsPage } from './pages/ClientsPage';
 import { TeamPage } from './pages/TeamPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
+import { AuthRequired } from './components/AuthRequired';
+import { AuthContainer } from './components/auth/AuthContainer';
+import { useTokenRoutes } from './hooks/useTokenRoutes';
 
 export const App = () => {
+  const { currentForm, tokenData } = useTokenRoutes();
+  
+  const handleNavigation = (path) => {
+    console.log('[App] Navigating to:', path);
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+  
   return (
-    <AppLayout>
-      {(props) => (
-        <Routes>
-          <Route path="/" element={<DashboardPage activeTab={props.activeTab} />} />
-          <Route path="/tasks" element={<TasksPage activeTab={props.activeTab} />} />
-          <Route path="/notifications" element={<NotificationsPage activeTab={props.activeTab} />} />
-          <Route path="/profile" element={<ProfilePage activeTab={props.activeTab} />} />
-          <Route path="/clients" element={<ClientsPage activeTab={props.activeTab} />} />
-          <Route path="/team" element={<TeamPage activeTab={props.activeTab} />} />
-          <Route path="/analytics" element={<AnalyticsPage activeTab={props.activeTab} />} />
-        </Routes>
-      )}
-    </AppLayout>
+    <Routes>
+      {/* Auth routes */}
+      <Route path="/auth/*" element={
+        <AuthRequired>
+          <AuthContainer 
+            currentForm={currentForm} 
+            tokenData={tokenData} 
+            handleNavigation={handleNavigation}
+          />
+        </AuthRequired>
+      } />
+      
+      {/* Token-based routes */}
+      <Route path="/reset-password" element={
+        <AuthRequired>
+          <AuthContainer 
+            currentForm={currentForm} 
+            tokenData={tokenData} 
+            handleNavigation={handleNavigation}
+          />
+        </AuthRequired>
+      } />
+      
+      <Route path="/verify-email" element={
+        <AuthRequired>
+          <AuthContainer 
+            currentForm={currentForm} 
+            tokenData={tokenData} 
+            handleNavigation={handleNavigation}
+          />
+        </AuthRequired>
+      } />
+      
+      {/* Main application routes */}
+      <Route path="/" element={
+        <AuthRequired>
+          <AppLayout />
+        </AuthRequired>
+      }>
+        <Route index element={<DashboardPage />} />
+        <Route path="tasks" element={<TasksPage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
+        <Route path="profile" element={<ProfilePage />} />
+        <Route path="clients" element={<ClientsPage />} />
+        <Route path="team" element={<TeamPage />} />
+        <Route path="analytics" element={<AnalyticsPage />} />
+      </Route>
+      
+      {/* Fallback route */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 };

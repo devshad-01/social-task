@@ -1,14 +1,30 @@
 import React, { useRef, useEffect, useContext } from 'react';
 import { Icons } from '../Icons';
 import { NavigationContext } from '../../context/NavigationContext';
+import { useAuthContext } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 export const UserMenu = ({ onClose }) => {
   const { user } = useContext(NavigationContext);
+  const { logout } = useAuthContext();
+  const navigate = useNavigate();
   const menuRef = useRef(null);
   
   const handleClose = () => {
     if (onClose) {
       onClose();
+    }
+  };
+  
+  const handleLogout = async (e) => {
+    e.preventDefault();
+    console.log('[UserMenu] Logging out user');
+    try {
+      await logout();
+      handleClose();
+      navigate('/auth/login');
+    } catch (error) {
+      console.error('[UserMenu] Logout error:', error);
     }
   };
 
@@ -69,16 +85,20 @@ export const UserMenu = ({ onClose }) => {
     switch (itemId) {
       case 'profile':
         console.log('Navigate to profile');
+        navigate('/profile');
         break;
       case 'settings':
         console.log('Navigate to settings');
+        navigate('/settings');
         break;
       case 'admin':
         console.log('Navigate to admin panel');
+        navigate('/admin');
         break;
       case 'logout':
         console.log('Handle logout');
-        break;
+        handleLogout(new Event('click'));
+        return; // Don't close menu yet as handleLogout handles that
       default:
         break;
     }
