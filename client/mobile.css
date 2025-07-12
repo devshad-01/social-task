@@ -372,3 +372,12 @@
     padding-bottom: calc(80px + max(0px, env(safe-area-inset-bottom)) + var(--spacing-base));
   }
 }
+
+/* Bold, theme-colored hamburger icon */
+.hamburger-icon {
+  width: 32px;
+  height: 32px;
+  stroke: var(--primary-600) !important;
+  stroke-width: 3 !important;
+  display: block;
+}
