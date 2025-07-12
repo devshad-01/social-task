@@ -61,7 +61,7 @@ export const Toast = ({
             onClick={handleClose}
             className="p-1"
           >
-            <Icons.x className="w-4 h-4" />
+            <Icons.close className="w-4 h-4" />
           </Button>
         </div>
       </Alert>

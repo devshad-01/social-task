@@ -8,6 +8,7 @@ import '../imports/api/users/publications';
 import '../imports/api/users/server/hooks';
 import '../imports/api/posts/methods';
 import '../imports/api/posts/server/publications';
+import '../imports/api/tasks/methods';
 import '../imports/api/tasks/server';
 import '../imports/api/notifications/methods';
 import '../imports/api/notifications/server/publications';

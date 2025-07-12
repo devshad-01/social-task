@@ -33,10 +33,28 @@ export const AddTaskPage = () => {
   const [showToast, setShowToast] = useState(false);
 
   // Get clients and users data
-  const { clients, users } = useTracker(() => ({
-    clients: [], // TODO: Add clients collection
-    users: Meteor.users.find({}, { fields: { emails: 1, profile: 1 } }).fetch()
-  }), []);
+  const { clients, users, usersLoading } = useTracker(() => {
+    const usersHandle = Meteor.subscribe('users.all');
+    const userData = Meteor.users.find({}, { 
+      fields: { 
+        emails: 1, 
+        'profile.firstName': 1,
+        'profile.lastName': 1,
+        'profile.fullName': 1,
+        'profile.role': 1,
+        'profile.avatar': 1
+      } 
+    }).fetch();
+    
+    console.log('[AddTaskPage] Users data:', userData);
+    console.log('[AddTaskPage] Users loading:', !usersHandle.ready());
+    
+    return {
+      clients: [], // TODO: Add clients collection
+      users: userData,
+      usersLoading: !usersHandle.ready()
+    };
+  }, []);
 
   const handleChange = (name, value) => {
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -76,23 +94,68 @@ export const AddTaskPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) return;
+    console.log('[AddTaskPage] Form submitted with data:', formData);
+    console.log('[AddTaskPage] Current user ID:', Meteor.userId());
+    console.log('[AddTaskPage] Users available:', users);
+    
+    if (!validateForm()) {
+      console.log('[AddTaskPage] Form validation failed:', errors);
+      return;
+    }
     
     setLoading(true);
     
     try {
-      await new Promise((resolve, reject) => {
-        Meteor.call('tasks.insert', {
-          ...formData,
-          dueDate: new Date(formData.dueDate)
-        }, (error, result) => {
+      console.log('[AddTaskPage] Calling tasks.insert...');
+      
+      const taskData = {
+        ...formData,
+        dueDate: new Date(formData.dueDate)
+      };
+      
+      console.log('[AddTaskPage] Task data to send:', taskData);
+      console.log('[AddTaskPage] Available Meteor methods:', Object.keys(Meteor.connection._methodHandlers || {}));
+      console.log('[AddTaskPage] tasks.insert method available:', !!Meteor.connection._methodHandlers?.['tasks.insert']);
+      
+      const result = await new Promise((resolve, reject) => {
+        Meteor.call('tasks.insert', taskData, (error, result) => {
           if (error) {
+            console.error('[AddTaskPage] Meteor.call error:', error);
+            console.error('[AddTaskPage] Error details:', {
+              error: error.error,
+              reason: error.reason,
+              message: error.message,
+              stack: error.stack
+            });
             reject(error);
           } else {
+            console.log('[AddTaskPage] Task created successfully with ID:', result);
             resolve(result);
           }
         });
       });
+      
+      // Send notifications to assignees
+      if (formData.assigneeIds.length > 0) {
+        console.log('[AddTaskPage] Sending notifications to assignees:', formData.assigneeIds);
+        try {
+          await new Promise((resolve, reject) => {
+            Meteor.call('notifications.taskAssigned', result, formData.assigneeIds, formData.title, (error) => {
+              if (error) {
+                console.error('[AddTaskPage] Notification error:', error);
+                // Don't fail the whole operation for notification errors
+                resolve();
+              } else {
+                console.log('[AddTaskPage] Notifications sent successfully');
+                resolve();
+              }
+            });
+          });
+        } catch (notificationError) {
+          console.error('[AddTaskPage] Failed to send notifications:', notificationError);
+          // Continue anyway - task creation succeeded
+        }
+      }
       
       setShowToast(true);
       setTimeout(() => {
@@ -100,7 +163,7 @@ export const AddTaskPage = () => {
       }, 1000);
       
     } catch (error) {
-      console.error('Error creating task:', error);
+      console.error('[AddTaskPage] Error creating task:', error);
       setErrors({ submit: error.message });
     } finally {
       setLoading(false);
@@ -248,7 +311,10 @@ export const AddTaskPage = () => {
                           size="sm"
                         />
                         <span className="text-sm text-gray-700">
-                          {user.profile?.fullName || user.emails[0]?.address}
+                          {user.profile?.fullName || 
+                           `${user.profile?.firstName || ''} ${user.profile?.lastName || ''}`.trim() ||
+                           user.emails[0]?.address ||
+                           'Unknown User'}
                         </span>
                       </div>
                     ))}
@@ -324,8 +390,9 @@ export const AddTaskPage = () => {
             </Button>
             <Button
               type="submit"
+              variant="primary"
               disabled={loading}
-              className="flex items-center gap-2"
+              className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2"
             >
               {loading ? (
                 <>
