@@ -130,12 +130,10 @@ export const BottomTabBar = () => {
       
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div 
-            className="fixed inset-0" 
-            onClick={() => setShowAddModal(false)}
-          />
-          <div className="bg-white rounded-xl p-6 m-4 max-w-sm w-full relative z-10 shadow-2xl">
+        <div className="sidebar-backdrop animate-fade-in z-50 flex items-center justify-center">
+          {/* Overlay click closes modal */}
+          <div className="backdrop-overlay" onClick={() => setShowAddModal(false)} />
+          <div className="bg-white rounded-xl p-6 m-4 max-w-sm w-full relative z-10 shadow-2xl animate-scale-in">
             <h3 className="text-lg font-semibold mb-4 text-gray-800">
               What would you like to add?
             </h3>
