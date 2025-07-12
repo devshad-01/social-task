@@ -307,7 +307,7 @@ export const TeamPage = () => {
         </div>
       ) : (
         <EmptyState
-          icon={Icons.users}
+          illustration={React.createElement(Icons.users, { className: "mx-auto h-12 w-12 text-gray-400" })}
           title="No team members found"
           description={searchTerm ? 'Try adjusting your search terms' : 'Invite your first team member to get started'}
           action={

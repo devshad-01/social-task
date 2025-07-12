@@ -111,10 +111,10 @@ export const TaskCard = ({
                 <span>{new Date(task.dueDate).toLocaleDateString()}</span>
               </div>
               
-              {task.assignees && task.assignees.length > 0 && (
+              {task.assigneeIds && task.assigneeIds.length > 0 && (
                 <div className="flex items-center space-x-1 text-gray-500">
                   {React.createElement(Icons.user, { className: "h-4 w-4" })}
-                  <span>{task.assignees.length} assigned</span>
+                  <span>{task.assigneeIds.length} assigned</span>
                 </div>
               )}
               
