@@ -48,6 +48,16 @@ Meteor.methods({
       updatedAt: new Date()
     });
 
+    // Send notifications to assignees if task is assigned
+    if (taskData.assigneeIds && taskData.assigneeIds.length > 0) {
+      try {
+        await Meteor.callAsync('notifications.taskAssigned', taskId, taskData.assigneeIds, taskData.title);
+      } catch (error) {
+        console.error('Failed to send task assignment notifications:', error);
+        // Don't fail the task creation if notification fails
+      }
+    }
+
     return taskId;
   },
 
@@ -79,7 +89,7 @@ Meteor.methods({
 
     // Check permissions
     const isAdmin = Roles.userIsInRole(this.userId, ['admin', 'supervisor']);
-    const isAssigned = task.assigneeIds.includes(this.userId);
+    const isAssigned = task.assigneeIds && task.assigneeIds.includes(this.userId);
     
     if (!isAdmin && !isAssigned) {
       throw new Meteor.Error('not-authorized', 'You can only update tasks you are assigned to');
@@ -108,6 +118,20 @@ Meteor.methods({
         updatedAt: new Date()
       }
     });
+
+    // Send notifications if assignees were added
+    if (updates.assigneeIds && updates.assigneeIds.length > 0) {
+      const oldAssignees = task.assigneeIds || [];
+      const newAssignees = updates.assigneeIds.filter(id => !oldAssignees.includes(id));
+      
+      if (newAssignees.length > 0) {
+        try {
+          await Meteor.callAsync('notifications.taskAssigned', taskId, newAssignees, task.title);
+        } catch (error) {
+          console.error('Failed to send task assignment notifications:', error);
+        }
+      }
+    }
 
     return taskId;
   },
@@ -153,7 +177,7 @@ Meteor.methods({
 
     // Check if user can view the task
     const canView = Roles.userIsInRole(this.userId, ['admin', 'supervisor']) || 
-                   task.assigneeIds.includes(this.userId);
+                   (task.assigneeIds && task.assigneeIds.includes(this.userId));
     
     if (!canView) {
       throw new Meteor.Error('not-authorized', 'You can only comment on tasks you can view');
@@ -215,6 +239,15 @@ Meteor.methods({
       }
     });
 
+    // Send notifications to newly assigned users
+    if (userIds.length > 0) {
+      try {
+        await Meteor.callAsync('notifications.taskAssigned', taskId, userIds, task.title);
+      } catch (error) {
+        console.error('Failed to send task assignment notifications:', error);
+      }
+    }
+
     return true;
   },
 
@@ -241,7 +274,7 @@ Meteor.methods({
 
     // Check permissions
     const isAdmin = Roles.userIsInRole(this.userId, ['admin', 'supervisor']);
-    const isAssigned = task.assigneeIds.includes(this.userId);
+    const isAssigned = task.assigneeIds && task.assigneeIds.includes(this.userId);
     
     if (!isAdmin && !isAssigned) {
       throw new Meteor.Error('not-authorized', 'You can only update status of tasks you are assigned to');

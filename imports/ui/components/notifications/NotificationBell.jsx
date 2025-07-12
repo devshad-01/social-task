@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '../common/Badge';
 import { Button } from '../common/Button';
 
@@ -9,9 +10,22 @@ export const NotificationBell = ({
   className = '' 
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
   
   const unreadCount = notifications.filter(n => !n.read).length;
   const recentNotifications = notifications.slice(0, 5);
+
+  const handleNotificationClick = (notification) => {
+    if (onNotificationClick) {
+      onNotificationClick(notification);
+    }
+    setIsOpen(false);
+  };
+
+  const handleViewAll = () => {
+    navigate('/notifications');
+    setIsOpen(false);
+  };
 
   const formatTimeAgo = (date) => {
     const now = new Date();
@@ -110,11 +124,8 @@ export const NotificationBell = ({
                 <div className="divide-y divide-gray-100">
                   {recentNotifications.map((notification) => (
                     <div 
-                      key={notification.id}
-                      onClick={() => {
-                        onNotificationClick?.(notification);
-                        setIsOpen(false);
-                      }}
+                      key={notification._id || notification.id}
+                      onClick={() => handleNotificationClick(notification)}
                       className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
                         !notification.read ? 'bg-blue-50' : ''
                       }`}
@@ -155,10 +166,7 @@ export const NotificationBell = ({
                   variant="outline" 
                   size="sm"
                   className="w-full"
-                  onClick={() => {
-                    onNotificationClick?.({ actionUrl: '/notifications' });
-                    setIsOpen(false);
-                  }}
+                  onClick={handleViewAll}
                 >
                   View all notifications
                 </Button>
