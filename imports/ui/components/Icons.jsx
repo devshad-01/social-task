@@ -49,8 +49,8 @@ export const Icons = {
     </svg>
   ),
 
-  menu: ({ className = "w-5 h-5", ...props }) => (
-    <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" {...props}>
+  menu: ({ className = "hamburger-icon", ...props }) => (
+    <svg className={className} fill="none" stroke="var(--primary-600)" strokeWidth="3" viewBox="0 0 24 24" {...props}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
     </svg>
   ),
