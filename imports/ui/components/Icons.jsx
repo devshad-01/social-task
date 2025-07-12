@@ -145,5 +145,17 @@ eye: ({ className = "w-5 h-5", ...props }) => (
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.882 13.064 9 12.735 9 12c0-.735-.118-1.064-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l.036.023c.312.196.65.316 1.01.316.36 0 .698-.12 1.01-.316l.036-.023M15 12c0 .735.118 1.064.316 1.342m0-2.684a3 3 0 110-2.684m0 2.684l.036.023c.312.196.65.316 1.01.316.36 0 .698-.12 1.01-.316l.036-.023M12 6.5v11M12 6.5c-.735 0-1.064.118-1.342.316m1.342-.316a3 3 0 110-2.684m0 2.684l.023.036c.196.312.316.65.316 1.01.001.36-.118.698-.316 1.01l-.023.036M12 17.5v-11M12 17.5c-.735 0-1.064-.118-1.342-.316m1.342.316a3 3 0 110 2.684m0-2.684l.023-.036c.196-.312.316-.65.316-1.01.001-.36-.118-.698-.316-1.01l-.023-.036" />
     </svg>
   ),
+  
+  paperclip: ({ className = "w-5 h-5", ...props }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+    </svg>
+  ),
+  
+  clipboard: ({ className = "w-5 h-5", ...props }) => (
+    <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+    </svg>
+  ),
 
 };
