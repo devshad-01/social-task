@@ -33,7 +33,7 @@ export const BottomTabBar = () => {
 
   return (
     <>
-      <nav className="bottom-tab-bar">
+      <nav className="bottom-tab-bar bottom-tab-bar-enhanced">
         <div className="bottom-tab-container safe-area-bottom">
           {/* Left tabs */}
           {leftTabs.map((item) => {
@@ -46,26 +46,21 @@ export const BottomTabBar = () => {
                 key={item.id}
                 to={item.path}
                 onClick={() => setActiveTab(item.id)}
-                className={`bottom-tab-item ${isActive ? 'bottom-tab-active' : ''}`}
+                className={`bottom-tab-item ${isActive ? 'active' : ''}`}
               >
                 <div className="bottom-tab-icon-wrapper">
                   <Icon 
-                    className={`bottom-tab-icon ${isActive ? 'active' : ''}`} 
+                    className="bottom-tab-icon" 
                   />
                   {hasNotificationBadge && (
-                    <span className="notification-badge">
+                    <span className="notification-badge notification-badge-enhanced">
                       {item.badge > 99 ? '99+' : item.badge}
                     </span>
                   )}
                 </div>
-                <span className={`bottom-tab-label ${isActive ? 'active' : ''}`}>
+                <span className="bottom-tab-label">
                   {item.label}
                 </span>
-                
-                {/* Active indicator */}
-                {isActive && (
-                  <div className="bottom-tab-indicator" />
-                )}
               </Link>
             );
           })}
@@ -75,9 +70,7 @@ export const BottomTabBar = () => {
             onClick={handleAddClick}
             className="bottom-tab-add-button"
           >
-            <div className="add-button-icon">
-              <Icons.plus className="w-6 h-6" />
-            </div>
+            <Icons.plus />
           </button>
           
           {/* Right tabs */}
@@ -91,26 +84,21 @@ export const BottomTabBar = () => {
                 key={item.id}
                 to={item.path}
                 onClick={() => setActiveTab(item.id)}
-                className={`bottom-tab-item ${isActive ? 'bottom-tab-active' : ''}`}
+                className={`bottom-tab-item ${isActive ? 'active' : ''}`}
               >
                 <div className="bottom-tab-icon-wrapper">
                   <Icon 
-                    className={`bottom-tab-icon ${isActive ? 'active' : ''}`} 
+                    className="bottom-tab-icon" 
                   />
                   {hasNotificationBadge && (
-                    <span className="notification-badge">
+                    <span className="notification-badge notification-badge-enhanced">
                       {item.badge > 99 ? '99+' : item.badge}
                     </span>
                   )}
                 </div>
-                <span className={`bottom-tab-label ${isActive ? 'active' : ''}`}>
+                <span className="bottom-tab-label">
                   {item.label}
                 </span>
-                
-                {/* Active indicator */}
-                {isActive && (
-                  <div className="bottom-tab-indicator" />
-                )}
               </Link>
             );
           })}

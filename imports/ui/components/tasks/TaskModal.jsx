@@ -9,22 +9,24 @@ export const TaskModal = ({
   isOpen, 
   onClose, 
   onSave, 
+  onDelete,
   task = null, 
   clients = [], 
   users = [],
-  mode = 'view' // 'view', 'edit', 'create'
+  mode = 'view', // 'view', 'edit', 'create'
+  canDelete = false
 }) => {
   const [formData, setFormData] = useState({
     title: task?.title || '',
     description: task?.description || '',
     dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().slice(0, 16) : '',
     clientId: task?.clientId || '',
-    assignees: task?.assignees || [],
+    assigneeIds: task?.assigneeIds || [],
     socialAccountIds: task?.socialAccountIds || [],
     attachments: task?.attachments || [],
     status: task?.status || 'draft',
     priority: task?.priority || 'medium',
-    category: task?.category || 'work'
+    tags: task?.tags || []
   });
   
   const [errors, setErrors] = useState({});
@@ -44,6 +46,17 @@ export const TaskModal = ({
         ? [...prev[name], item]
         : prev[name].filter(i => i !== item)
     }));
+  };
+
+  const handleDeleteTask = async () => {
+    if (window.confirm('Are you sure you want to delete this task?')) {
+      try {
+        await onDelete();
+        onClose();
+      } catch (error) {
+        setErrors({ submit: error.message });
+      }
+    }
   };
 
   const validateForm = () => {
@@ -159,6 +172,22 @@ export const TaskModal = ({
           
           <div>
             <Select
+              label="Status"
+              value={formData.status}
+              onChange={(e) => handleChange('status', e.target.value)}
+              disabled={isViewMode}
+              options={[
+                { value: 'draft', label: 'Draft' },
+                { value: 'scheduled', label: 'Scheduled' },
+                { value: 'in_progress', label: 'In Progress' },
+                { value: 'completed', label: 'Completed' },
+                { value: 'blocked', label: 'Blocked' }
+              ]}
+            />
+          </div>
+          
+          <div>
+            <Select
               label="Priority"
               value={formData.priority}
               onChange={(e) => handleChange('priority', e.target.value)}
@@ -167,20 +196,6 @@ export const TaskModal = ({
                 { value: 'low', label: 'Low' },
                 { value: 'medium', label: 'Medium' },
                 { value: 'high', label: 'High' }
-              ]}
-            />
-          </div>
-          
-          <div>
-            <Select
-              label="Category"
-              value={formData.category}
-              onChange={(e) => handleChange('category', e.target.value)}
-              disabled={isViewMode}
-              options={[
-                { value: 'work', label: 'Work' },
-                { value: 'personal', label: 'Personal' },
-                { value: 'urgent', label: 'Urgent' }
               ]}
             />
           </div>
@@ -201,14 +216,14 @@ export const TaskModal = ({
                         src={user.avatar} 
                         alt={user.fullName}
                         size="sm"
-                        fallback={user.fullName.charAt(0)}
+                        fallback={user.fullName?.charAt(0) || '?'}
                       />
                       <span>{user.fullName}</span>
                       <Badge variant="outline" size="sm">{user.role}</Badge>
                     </div>
                   }
-                  checked={formData.assignees.includes(user.id)}
-                  onChange={(e) => handleArrayChange('assignees', user.id, e.target.checked)}
+                  checked={formData.assigneeIds.includes(user.id)}
+                  onChange={(e) => handleArrayChange('assigneeIds', user.id, e.target.checked)}
                 />
               ))}
             </div>
@@ -274,26 +289,40 @@ export const TaskModal = ({
           </div>
         )}
         
-        <div className="flex justify-end space-x-3 pt-4 border-t">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
+        <div className="flex justify-between pt-4 border-t">
+          <div>
+            {canDelete && isEditMode && (
+              <Button 
+                type="button" 
+                variant="danger" 
+                onClick={handleDeleteTask}
+              >
+                Delete Task
+              </Button>
+            )}
+          </div>
           
-          {!isViewMode && (
-            <Button type="submit" loading={loading}>
-              {isCreateMode ? 'Create Task' : 'Save Changes'}
+          <div className="flex space-x-3">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
             </Button>
-          )}
-          
-          {isViewMode && task?.status === 'scheduled' && (
-            <Button 
-              type="button" 
-              variant="success"
-              onClick={() => onSave({ ...task, status: 'completed' })}
-            >
-              Mark as Complete
-            </Button>
-          )}
+            
+            {!isViewMode && (
+              <Button type="submit" loading={loading}>
+                {isCreateMode ? 'Create Task' : 'Save Changes'}
+              </Button>
+            )}
+            
+            {isViewMode && task?.status !== 'completed' && (
+              <Button 
+                type="button" 
+                variant="success"
+                onClick={() => onSave({ ...task, status: 'completed' })}
+              >
+                Mark as Complete
+              </Button>
+            )}
+          </div>
         </div>
       </form>
     </Modal>

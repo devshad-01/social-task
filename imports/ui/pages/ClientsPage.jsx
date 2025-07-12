@@ -292,7 +292,7 @@ export const ClientsPage = () => {
         </div>
       ) : (
         <EmptyState
-          icon={Icons.building}
+          illustration={React.createElement(Icons.building, { className: "mx-auto h-12 w-12 text-gray-400" })}
           title="No clients found"
           description={searchTerm ? 'Try adjusting your search terms' : 'Add your first client to get started'}
           action={
