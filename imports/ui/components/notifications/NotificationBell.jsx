@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '../common/Badge';
 import { Button } from '../common/Button';
+import { WebPushService } from '../../../api/notifications/webPush';
 
 export const NotificationBell = ({ 
   notifications = [], 
@@ -20,6 +21,20 @@ export const NotificationBell = ({
       onNotificationClick(notification);
     }
     setIsOpen(false);
+  };
+
+  const handleBellClick = async () => {
+    // Request notification permission on first click
+    if (Notification.permission === 'default') {
+      try {
+        console.log('[NotificationBell] Requesting notification permission...');
+        const granted = await WebPushService.requestPermission();
+        console.log('[NotificationBell] Notification permission granted:', granted);
+      } catch (error) {
+        console.error('[NotificationBell] Error requesting notification permission:', error);
+      }
+    }
+    setIsOpen(!isOpen);
   };
 
   const handleViewAll = () => {
@@ -64,7 +79,7 @@ export const NotificationBell = ({
   return (
     <div className={`relative ${className}`}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleBellClick}
         className="relative p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg transition-colors"
       >
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

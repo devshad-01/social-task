@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { WebPushService } from '../../api/notifications/webPush';
 
 // Create the AuthContext
 const AuthContext = createContext();
@@ -17,6 +18,9 @@ export const AuthProvider = ({ children }) => {
     if (!auth.isLoading) {
       setLoading(false);
       console.log('[AuthProvider] Auth state loaded, user present:', !!auth.user);
+      
+      // Don't auto-request notification permission - it must be user-initiated
+      // We'll add a notification permission request in the notification bell component
     }
   }, [auth.isLoading, auth.user]);
   

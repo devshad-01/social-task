@@ -6,6 +6,7 @@ import { App } from '/imports/ui/App';
 import { NavigationProvider } from '/imports/ui/context/NavigationContext';
 import { ResponsiveProvider } from '/imports/ui/context/ResponsiveContext';
 import { AuthProvider } from '/imports/ui/context/AuthContext';
+import { WebPushService } from '/imports/api/notifications/webPush';
 import './main.css';
 // import './test-notifications.js'; // Removed to fix module not found error
 
@@ -63,4 +64,13 @@ Meteor.startup(() => {
         });
     });
   }
+
+  // Handle notification clicks for web push
+  window.addEventListener('notification-click', (event) => {
+    const { actionUrl } = event.detail;
+    if (actionUrl) {
+      // Use window.location for navigation since we're outside React Router context
+      window.location.href = actionUrl;
+    }
+  });
 });
