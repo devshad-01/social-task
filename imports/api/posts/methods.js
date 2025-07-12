@@ -5,33 +5,34 @@ import { Meteor } from 'meteor/meteor';
 import { PostsCollection } from './PostsCollections.js';
 
 Meteor.methods({
-'posts.add'(data) { // Changed 'text' to 'data' for clarity, as you pass an object
-    // Destructure the data object for easier access
-    const { caption, tags, mediaUrl, type } = data;
+  'posts.add'(data) {
+    // ✅ Destructure the incoming data including client info
+    const { caption, tags, mediaUrl, type, client, clientId } = data;
 
-    // Validate the incoming data
+    // ✅ Validate types
     check(caption, String);
     check(tags, String);
     check(mediaUrl, String);
     check(type, String);
+    if (client) check(client, String); // optional
+    if (clientId) check(clientId, String); // optional
 
-    // Ensure user is logged in
+    // ✅ Authorization check
     if (!this.userId) {
       throw new Meteor.Error('not-authorized', 'You must be logged in to add posts.');
     }
 
-    // Use insertAsync() for server-side database insertion
-    // Since insertAsync() returns a Promise, we should await it if we want to
-    // ensure the insertion completes before the method returns, or handle the Promise.
-    // For Meteor methods, returning a Promise is often sufficient, as Meteor handles it.
+    // ✅ Use insertAsync for modern Meteor
     return PostsCollection.insertAsync({
       caption,
       tags,
       mediaUrl,
       type,
+      client,     // ✅ Attach client name
+      clientId,   // ✅ Attach client ID
+      status: 'unshared',
       createdAt: new Date(),
       userId: this.userId,
-      status: 'unshared',
     });
   },
 });
