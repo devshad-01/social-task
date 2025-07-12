@@ -130,45 +130,34 @@ export const BottomTabBar = () => {
       
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="sidebar-backdrop" onClick={() => setShowAddModal(false)}>
-            <div className="backdrop-overlay" />
-          </div>
-          <div className="bg-white rounded-lg p-6 m-4 max-w-sm w-full relative z-10 shadow-xl">
-            <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--neutral-800)' }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div 
+            className="fixed inset-0" 
+            onClick={() => setShowAddModal(false)}
+          />
+          <div className="bg-white rounded-xl p-6 m-4 max-w-sm w-full relative z-10 shadow-2xl">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">
               What would you like to add?
             </h3>
             <div className="space-y-3">
               <button
                 onClick={() => handleAddOption('task')}
-                className="w-full flex items-center gap-3 p-3 rounded-lg transition-colors hover-lift"
-                style={{ 
-                  backgroundColor: 'var(--primary-50)',
-                  color: 'var(--primary-700)'
-                }}
+                className="w-full flex items-center gap-3 p-4 rounded-lg transition-all duration-200 bg-blue-50 hover:bg-blue-100 text-blue-700 hover:scale-105"
               >
-                <Icons.tasks className="w-5 h-5" style={{ color: 'var(--primary-600)' }} />
+                <Icons.tasks className="w-5 h-5 text-blue-600" />
                 <span className="font-medium">Add Task</span>
               </button>
               <button
                 onClick={() => handleAddOption('post')}
-                className="w-full flex items-center gap-3 p-3 rounded-lg transition-colors hover-lift"
-                style={{ 
-                  backgroundColor: 'var(--secondary-50)',
-                  color: 'var(--secondary-700)'
-                }}
+                className="w-full flex items-center gap-3 p-4 rounded-lg transition-all duration-200 bg-green-50 hover:bg-green-100 text-green-700 hover:scale-105"
               >
-                <Icons.post className="w-5 h-5" style={{ color: 'var(--secondary-600)' }} />
+                <Icons.post className="w-5 h-5 text-green-600" />
                 <span className="font-medium">Add Post</span>
               </button>
             </div>
             <button
               onClick={() => setShowAddModal(false)}
-              className="w-full mt-4 p-2 transition-colors"
-              style={{ 
-                color: 'var(--neutral-500)',
-                ':hover': { color: 'var(--neutral-700)' }
-              }}
+              className="w-full mt-4 p-2 text-gray-500 hover:text-gray-700 transition-colors"
             >
               Cancel
             </button>

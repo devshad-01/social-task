@@ -548,25 +548,37 @@ body {
   align-items: center;
   justify-content: space-between;
   margin-bottom: var(--spacing-xl);
+  padding: 1rem;
+  border-bottom: 1px solid var(--neutral-200);
 }
 
 .sidebar-logo {
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--primary-600);
+  display: flex;
+  align-items: center;
 }
 
 .sidebar-close {
   width: 40px;
   height: 40px;
   border-radius: var(--radius-full);
-  border: none;
-  background: transparent;
+  border: 1px solid var(--neutral-200);
+  background: var(--neutral-50);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--neutral-600);
   cursor: pointer;
+  transition: all var(--transition-normal);
+  flex-shrink: 0;
+}
+
+.sidebar-close:hover {
+  background: var(--neutral-100);
+  border-color: var(--neutral-300);
+  color: var(--neutral-700);
 }
 
 .sidebar-user {
