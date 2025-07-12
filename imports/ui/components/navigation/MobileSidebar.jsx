@@ -45,7 +45,7 @@ export const MobileSidebar = () => {
       {/* Sidebar */}
       <div 
         ref={sidebarRef}
-        className="sidebar-container absolute left-0 top-0 bottom-0 w-80 bg-white shadow-2xl animate-slide-in-left"
+        className="sidebar-container animate-slide-in-left"
       >
         <div className="flex flex-col h-full">
           {/* Header */}
@@ -98,8 +98,9 @@ export const MobileSidebar = () => {
               const isActive = activeTab === item.id;
 
               return (
-                <button
+                <Link
                   key={item.id}
+                  to={item.path}
                   onClick={() => handleItemClick(item.id)}
                   className={`w-full flex items-center space-x-3 p-4 rounded-xl transition-all duration-200 ${
                     isActive 
@@ -114,7 +115,7 @@ export const MobileSidebar = () => {
                       {item.badge > 99 ? '99+' : item.badge}
                     </span>
                   )}
-                </button>
+                </Link>
               );
             })}
 

@@ -1,6 +1,7 @@
 /* TaskFlow Pro Design System - Main.css */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
+@import "./navigation.css";
 
 /* CSS Custom Properties for Design System */
 :root{
@@ -89,6 +90,13 @@
 
 * {
   box-sizing: border-box;
+  /* PWA native app feel */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 html {
@@ -440,6 +448,40 @@ body {
   height: 2px;
   background-color: var(--primary-600);
   border-radius: var(--radius-full);
+}
+
+/* Bottom Tab Add Button */
+.bottom-tab-add-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-lg);
+  margin: 0 var(--spacing-sm);
+  position: relative;
+  top: -8px;
+}
+
+.bottom-tab-add-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+}
+
+.bottom-tab-add-button:active {
+  transform: translateY(-1px);
+}
+
+.add-button-icon {
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Notification Badge */
@@ -1345,4 +1387,17 @@ body {
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: var(--neutral-400);
+}
+
+/* PWA specific styles */
+@media (display-mode: standalone) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Disable zoom on iOS */
+input[type="text"], input[type="password"], input[type="email"], textarea {
+  font-size: 16px !important;
 }

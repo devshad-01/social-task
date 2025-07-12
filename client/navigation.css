@@ -1,0 +1,160 @@
+/* Navigation Components Additional Styles */
+/* This file extends the main.css theme while keeping navigation-specific styles separate */
+
+/* Enhanced Mobile Navigation */
+.mobile-nav-enhanced {
+  background: linear-gradient(135deg, var(--neutral-50) 0%, var(--primary-50) 100%);
+  border-top: 1px solid var(--primary-200);
+}
+
+/* Modal Overlay Enhancement */
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Add Button Hover Effects */
+.bottom-tab-add-button:hover {
+  background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+  transform: translateY(-2px) scale(1.05);
+}
+
+/* Modal Button Hover Effects */
+.modal-button-primary:hover {
+  background: linear-gradient(135deg, var(--primary-100) 0%, var(--primary-200) 100%);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.modal-button-secondary:hover {
+  background: linear-gradient(135deg, var(--secondary-100) 0%, var(--secondary-200) 100%);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Navigation Animation Enhancement */
+.nav-item-enhanced {
+  transition: all var(--transition-normal);
+  position: relative;
+}
+
+.nav-item-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, var(--primary-100) 0%, var(--primary-200) 100%);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+  border-radius: inherit;
+}
+
+.nav-item-enhanced:hover::before {
+  opacity: 1;
+}
+
+.nav-item-enhanced > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Bottom Tab Enhancement */
+.bottom-tab-enhanced {
+  background: linear-gradient(135deg, var(--neutral-50) 0%, rgba(255, 255, 255, 0.9) 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid var(--neutral-200);
+}
+
+/* Active Tab Glow Effect */
+.bottom-tab-active-glow {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+/* Sidebar Enhancement */
+.sidebar-enhanced {
+  background: linear-gradient(135deg, var(--neutral-50) 0%, rgba(255, 255, 255, 0.95) 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Quick Action Buttons */
+.quick-action-button {
+  background: linear-gradient(135deg, var(--neutral-50) 0%, var(--neutral-100) 100%);
+  border: 1px solid var(--neutral-200);
+  transition: all var(--transition-normal);
+}
+
+.quick-action-button:hover {
+  background: linear-gradient(135deg, var(--neutral-100) 0%, var(--neutral-200) 100%);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--neutral-300);
+}
+
+/* User Avatar Enhancement */
+.user-avatar-enhanced {
+  background: linear-gradient(135deg, var(--primary-100) 0%, var(--primary-200) 100%);
+  border: 2px solid var(--primary-300);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Notification Badge Enhancement */
+.notification-badge-enhanced {
+  background: linear-gradient(135deg, var(--status-error) 0%, #dc2626 100%);
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { 
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+  }
+  50% { 
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+  }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .bottom-tab-add-button {
+    width: 48px;
+    height: 48px;
+    top: -6px;
+  }
+  
+  .bottom-tab-container {
+    padding: var(--spacing-xs) 0;
+  }
+  
+  .bottom-tab-item {
+    padding: var(--spacing-xs) 0;
+  }
+}
+
+/* Safe Area Support */
+@supports (padding: max(0px)) {
+  .safe-area-bottom {
+    padding-bottom: max(var(--spacing-base), env(safe-area-inset-bottom));
+  }
+}
+
+/* Dark Mode Support for Navigation */
+@media (prefers-color-scheme: dark) {
+  .mobile-nav-enhanced {
+    background: linear-gradient(135deg, var(--neutral-800) 0%, var(--neutral-900) 100%);
+    border-top-color: var(--neutral-700);
+  }
+  
+  .sidebar-enhanced {
+    background: linear-gradient(135deg, var(--neutral-800) 0%, var(--neutral-900) 100%);
+  }
+  
+  .bottom-tab-enhanced {
+    background: linear-gradient(135deg, var(--neutral-800) 0%, rgba(38, 38, 38, 0.95) 100%);
+    border-top-color: var(--neutral-700);
+  }
+}
