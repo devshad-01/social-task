@@ -1,157 +1,124 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTracker } from 'meteor/react-meteor-data';
+import { Meteor } from 'meteor/meteor';
+import { Roles } from 'meteor/alanning:roles';
+import { Tasks } from '../../api/tasks/TasksCollection';
 
 /**
  * Custom hook to manage tasks state and operations
  * @returns {Object} - Tasks state and methods
  */
 export const useTasks = () => {
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Mock data for now - will be replaced with Meteor methods
-  const mockTasks = [
-    {
-      id: 1,
-      title: 'Create Instagram post for summer sale',
-      description: 'Design and schedule Instagram post featuring summer products with engaging visuals and compelling copy',
-      status: 'in_progress',
-      priority: 'high',
-      dueDate: '2024-01-15',
-      assignees: [{ name: 'Sarah Johnson', avatar: '/images/avatar1.jpg' }],
-      client: { id: 1, name: 'Fashion Brand Co.', logoUrl: '/images/client1.jpg' },
-      socialAccounts: [{ id: 1, platform: 'Instagram' }],
-      attachments: [],
-      createdAt: '2024-01-10',
-      updatedAt: '2024-01-12'
-    },
-    {
-      id: 2,
-      title: 'Facebook ad campaign setup',
-      description: 'Set up and launch Facebook advertising campaign for Q1 with targeted demographics and budget allocation',
-      status: 'pending',
-      priority: 'medium',
-      dueDate: '2024-01-20',
-      assignees: [{ name: 'Mike Chen', avatar: '/images/avatar2.jpg' }],
-      client: { id: 2, name: 'Tech Startup Inc.', logoUrl: '/images/client2.jpg' },
-      socialAccounts: [{ id: 2, platform: 'Facebook' }],
-      attachments: [],
-      createdAt: '2024-01-08',
-      updatedAt: '2024-01-10'
-    },
-    {
-      id: 3,
-      title: 'Weekly analytics report',
-      description: 'Compile and analyze social media performance metrics for all active campaigns',
-      status: 'completed',
-      priority: 'low',
-      dueDate: '2024-01-10',
-      assignees: [{ name: 'Emily Davis', avatar: '/images/avatar3.jpg' }],
-      client: { id: 3, name: 'Restaurant Chain', logoUrl: '/images/client3.jpg' },
-      socialAccounts: [{ id: 3, platform: 'Multiple' }],
-      attachments: [],
-      createdAt: '2024-01-05',
-      updatedAt: '2024-01-10'
-    },
-    {
-      id: 4,
-      title: 'LinkedIn content calendar',
-      description: 'Create monthly content calendar for LinkedIn business profile with industry insights',
-      status: 'in_progress',
-      priority: 'medium',
-      dueDate: '2024-01-18',
-      assignees: [{ name: 'David Wilson', avatar: '/images/avatar4.jpg' }],
-      client: { id: 4, name: 'B2B Software Co.', logoUrl: '/images/client4.jpg' },
-      socialAccounts: [{ id: 4, platform: 'LinkedIn' }],
-      attachments: [],
-      createdAt: '2024-01-09',
-      updatedAt: '2024-01-11'
-    },
-    {
-      id: 5,
-      title: 'TikTok viral challenge',
-      description: 'Develop creative TikTok challenge campaign to increase brand awareness',
-      status: 'pending',
-      priority: 'high',
-      dueDate: '2024-01-22',
-      assignees: [{ name: 'Lisa Garcia', avatar: '/images/avatar5.jpg' }],
-      client: { id: 5, name: 'Youth Brand LLC', logoUrl: '/images/client5.jpg' },
-      socialAccounts: [{ id: 5, platform: 'TikTok' }],
-      attachments: [],
-      createdAt: '2024-01-11',
-      updatedAt: '2024-01-11'
+  // Subscribe to tasks based on user role
+  const { tasks, loading, user } = useTracker(() => {
+    const user = Meteor.user();
+    
+    if (!user) {
+      return { tasks: [], loading: false, user: null };
     }
-  ];
 
-  // Initialize tasks
-  useEffect(() => {
-    setTasks(mockTasks);
+    // Subscribe to appropriate tasks based on user role
+    const isAdmin = Roles.userIsInRole(user._id, ['admin', 'supervisor']);
+    const subscription = isAdmin ? 
+      Meteor.subscribe('tasks.all') : 
+      Meteor.subscribe('tasks.assigned');
+
+    const tasks = Tasks.find({}, {
+      sort: { createdAt: -1 }
+    }).fetch();
+
+    return {
+      tasks,
+      loading: !subscription.ready(),
+      user
+    };
   }, []);
 
   // Create task
   const createTask = useCallback(async (taskData) => {
     try {
-      setLoading(true);
       setError(null);
       
-      // Mock create operation
-      const newTask = {
-        id: Date.now(),
-        ...taskData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      
-      setTasks(prev => [...prev, newTask]);
-      return newTask;
+      // Convert date string to Date object if needed
+      if (taskData.dueDate && typeof taskData.dueDate === 'string') {
+        taskData.dueDate = new Date(taskData.dueDate);
+      }
+
+      const taskId = await Meteor.callAsync('tasks.create', taskData);
+      return taskId;
     } catch (err) {
       setError(err.message || 'Failed to create task');
       throw err;
-    } finally {
-      setLoading(false);
     }
   }, []);
 
   // Update task
   const updateTask = useCallback(async (taskId, updates) => {
     try {
-      setLoading(true);
       setError(null);
       
-      setTasks(prev => 
-        prev.map(task => 
-          task.id === taskId 
-            ? { ...task, ...updates, updatedAt: new Date().toISOString() }
-            : task
-        )
-      );
+      // Convert date string to Date object if needed
+      if (updates.dueDate && typeof updates.dueDate === 'string') {
+        updates.dueDate = new Date(updates.dueDate);
+      }
+
+      await Meteor.callAsync('tasks.update', taskId, updates);
     } catch (err) {
       setError(err.message || 'Failed to update task');
       throw err;
-    } finally {
-      setLoading(false);
     }
   }, []);
 
   // Delete task
   const deleteTask = useCallback(async (taskId) => {
     try {
-      setLoading(true);
       setError(null);
-      
-      setTasks(prev => prev.filter(task => task.id !== taskId));
+      await Meteor.callAsync('tasks.delete', taskId);
     } catch (err) {
       setError(err.message || 'Failed to delete task');
       throw err;
-    } finally {
-      setLoading(false);
+    }
+  }, []);
+
+  // Update task status
+  const updateStatus = useCallback(async (taskId, status) => {
+    try {
+      setError(null);
+      await Meteor.callAsync('tasks.updateStatus', taskId, status);
+    } catch (err) {
+      setError(err.message || 'Failed to update task status');
+      throw err;
     }
   }, []);
 
   // Complete task
   const completeTask = useCallback(async (taskId) => {
-    return updateTask(taskId, { status: 'completed' });
-  }, [updateTask]);
+    return updateStatus(taskId, 'completed');
+  }, [updateStatus]);
+
+  // Add comment to task
+  const addComment = useCallback(async (taskId, commentText) => {
+    try {
+      setError(null);
+      await Meteor.callAsync('tasks.addComment', taskId, commentText);
+    } catch (err) {
+      setError(err.message || 'Failed to add comment');
+      throw err;
+    }
+  }, []);
+
+  // Assign users to task
+  const assignUsers = useCallback(async (taskId, userIds) => {
+    try {
+      setError(null);
+      await Meteor.callAsync('tasks.assignUsers', taskId, userIds);
+    } catch (err) {
+      setError(err.message || 'Failed to assign users');
+      throw err;
+    }
+  }, []);
 
   // Filter tasks
   const filterTasks = useCallback((filter, searchTerm = '') => {
@@ -159,8 +126,7 @@ export const useTasks = () => {
       const matchesFilter = filter === 'all' || task.status === filter;
       const matchesSearch = !searchTerm || 
         task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.client?.name.toLowerCase().includes(searchTerm.toLowerCase());
+        task.description?.toLowerCase().includes(searchTerm.toLowerCase());
       
       return matchesFilter && matchesSearch;
     });
@@ -170,11 +136,13 @@ export const useTasks = () => {
   const getTaskStats = useCallback(() => {
     return {
       total: tasks.length,
-      pending: tasks.filter(t => t.status === 'pending').length,
+      draft: tasks.filter(t => t.status === 'draft').length,
+      scheduled: tasks.filter(t => t.status === 'scheduled').length,
       in_progress: tasks.filter(t => t.status === 'in_progress').length,
       completed: tasks.filter(t => t.status === 'completed').length,
+      blocked: tasks.filter(t => t.status === 'blocked').length,
       overdue: tasks.filter(t => 
-        new Date(t.dueDate) < new Date() && t.status !== 'completed'
+        t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'completed'
       ).length
     };
   }, [tasks]);
@@ -183,10 +151,14 @@ export const useTasks = () => {
     tasks,
     loading,
     error,
+    user,
     createTask,
     updateTask,
     deleteTask,
+    updateStatus,
     completeTask,
+    addComment,
+    assignUsers,
     filterTasks,
     getTaskStats
   };
