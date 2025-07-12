@@ -208,6 +208,110 @@
   background: var(--neutral-50);
 }
 
+/* Desktop Quick Actions */
+.desktop-quick-actions {
+  margin-top: 2rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--neutral-200);
+}
+
+.desktop-quick-actions-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+  padding: 0 1rem;
+}
+
+.desktop-quick-actions-grid {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0 1rem;
+}
+
+.desktop-quick-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--border-radius);
+  background: var(--neutral-50);
+  color: var(--neutral-700);
+  transition: all var(--transition-normal);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.desktop-quick-action-btn:hover {
+  background: var(--primary-50);
+  border-color: var(--primary-200);
+  color: var(--primary-700);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.desktop-quick-action-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--neutral-600);
+}
+
+.desktop-quick-action-btn:hover .desktop-quick-action-icon {
+  color: var(--primary-600);
+}
+
+/* Simplified User Menu */
+.user-menu-button-simple {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--border-radius);
+  background: var(--neutral-50);
+  color: var(--neutral-700);
+  transition: all var(--transition-normal);
+  width: 100%;
+}
+
+.user-menu-button-simple:hover {
+  background: var(--neutral-100);
+  border-color: var(--neutral-300);
+}
+
+.user-info-compact {
+  flex: 1;
+  text-align: left;
+}
+
+.user-info-compact .user-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--neutral-800);
+  line-height: 1.2;
+}
+
+.user-info-compact .user-role {
+  font-size: 0.75rem;
+  color: var(--neutral-500);
+  text-transform: capitalize;
+  line-height: 1.2;
+}
+
+.menu-arrow-icon {
+  width: 1rem;
+  height: 1rem;
+  color: var(--neutral-400);
+  transition: transform var(--transition-normal);
+}
+
+.user-menu-button-simple:hover .menu-arrow-icon {
+  transform: rotate(180deg);
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   .bottom-tab-add-button {
