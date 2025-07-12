@@ -1,23 +1,34 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '../components/common/Button';
-import { Icons } from '../components/Icons';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useTracker } from "meteor/react-meteor-data";
+import { Button } from "../components/common/Button";
+import { Icons } from "../components/Icons";
+import { ClientsCollection } from "/imports/api/clients/ClientsCollection";
 
 export const AddPosts = () => {
   const [mediaFile, setMediaFile] = useState(null);
-  const [caption, setCaption] = useState('');
-  const [tags, setTags] = useState('');
+  const [caption, setCaption] = useState("");
+  const [tags, setTags] = useState("");
+  const [selectedClient, setSelectedClient] = useState("");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
   const navigate = useNavigate();
 
+  const clients = useTracker(() => {
+    const handle = Meteor.subscribe("clients");
+    if (!handle.ready()) return [];
+    return ClientsCollection.find().fetch();
+  });
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file && (file.type.startsWith('image') || file.type.startsWith('video'))) {
+    if (
+      file &&
+      (file.type.startsWith("image") || file.type.startsWith("video"))
+    ) {
       setMediaFile(file);
     } else {
-      alert('Please upload a valid image or video file.');
+      alert("Please upload a valid image or video file.");
       setMediaFile(null);
     }
   };
@@ -27,11 +38,12 @@ export const AddPosts = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!mediaFile) return alert('Please select an image or video');
+    if (!mediaFile) return alert("Please select an image or video");
+    if (!selectedClient) return alert("Please select a client");
 
     setUploading(true);
     setUploadProgress(0);
-    setSuccessMessage('');
+    setSuccessMessage("");
 
     const reader = new FileReader();
 
@@ -39,44 +51,56 @@ export const AddPosts = () => {
       const base64Data = reader.result;
       const fileName = mediaFile.name;
 
-      // Simulate progress (for UI feedback)
       let fakeProgress = 0;
       const interval = setInterval(() => {
         fakeProgress += 10;
         setUploadProgress(Math.min(fakeProgress, 95));
       }, 200);
 
-      Meteor.call('uploadToCloudinary', base64Data, fileName, (err, mediaUrl) => {
-        clearInterval(interval);
-        setUploadProgress(100);
+      Meteor.call(
+        "uploadToCloudinary",
+        base64Data,
+        fileName,
+        (err, mediaUrl) => {
+          clearInterval(interval);
+          setUploadProgress(100);
 
-        if (err) {
-          setUploading(false);
-          console.error('Cloudinary Upload Error:', err);
-          alert('Upload failed: ' + err.reason);
-          return;
-        }
-
-        Meteor.call(
-          'posts.add',
-          {
-            caption,
-            tags,
-            mediaUrl,
-            type: mediaFile.type.startsWith('video') ? 'video' : 'image',
-          },
-          (error) => {
+          if (err) {
             setUploading(false);
-            if (error) {
-              console.error('Error saving post:', error);
-              alert('Post creation failed.');
-            } else {
-              setSuccessMessage('✅ Post added successfully!');
-              setTimeout(() => navigate('/'), 2000);
-            }
+            console.error("Cloudinary Upload Error:", err);
+            alert("Upload failed: " + err.reason);
+            return;
           }
-        );
-      });
+
+          const fullClient = clients.find((c) => c._id === selectedClient);
+          if (!fullClient) {
+            alert("Invalid client selected.");
+            return;
+          }
+
+          Meteor.call(
+            "posts.add",
+            {
+              caption,
+              tags,
+              mediaUrl,
+              clientId: fullClient._id,
+              client: fullClient.name,
+              type: mediaFile.type.startsWith("video") ? "video" : "image",
+            },
+            (error) => {
+              setUploading(false);
+              if (error) {
+                console.error("Error saving post:", error);
+                alert("Post creation failed.");
+              } else {
+                setSuccessMessage("✅ Post added successfully!");
+                setTimeout( 2000);
+              }
+            }
+          );
+        }
+      );
     };
 
     reader.readAsDataURL(mediaFile);
@@ -86,7 +110,7 @@ export const AddPosts = () => {
     <div className="px-4 sm:px-6 lg:px-8 py-8 max-w-3xl mx-auto">
       <div className="mb-4">
         <button
-          onClick={() => navigate('/posts')}
+          onClick={() => navigate("/posts")}
           className="text-sm text-teal-600 hover:underline flex items-center gap-1"
         >
           <Icons.arrowLeft className="h-4 w-4" />
@@ -95,15 +119,21 @@ export const AddPosts = () => {
       </div>
 
       <div className="bg-white shadow-md rounded-xl p-6 sm:p-8 space-y-6">
-        <h1 className="text-2xl font-semibold text-gray-800">📤 Create New Post</h1>
+        <h1 className="text-2xl font-semibold text-gray-800">
+          📤 Create New Post
+        </h1>
 
         {successMessage && (
-          <div className="p-3 bg-green-100 text-green-700 rounded-md text-sm">{successMessage}</div>
+          <div className="p-3 bg-green-100 text-green-700 rounded-md text-sm">
+            {successMessage}
+          </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Upload Media (Image or Video)</label>
+            <label className="block text-gray-700 font-medium mb-1">
+              Upload Media (Image or Video)
+            </label>
             <input
               type="file"
               accept="image/*,video/*"
@@ -116,7 +146,7 @@ export const AddPosts = () => {
               <div className="mt-4">
                 <p className="text-sm text-gray-600 mb-2">Preview:</p>
                 <div className="relative rounded-md overflow-hidden max-h-64">
-                  {mediaFile.type.startsWith('image') ? (
+                  {mediaFile.type.startsWith("image") ? (
                     <img
                       src={URL.createObjectURL(mediaFile)}
                       alt="Preview"
@@ -142,7 +172,9 @@ export const AddPosts = () => {
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Caption</label>
+            <label className="block text-gray-700 font-medium mb-1">
+              Caption
+            </label>
             <textarea
               rows={4}
               value={caption}
@@ -154,7 +186,9 @@ export const AddPosts = () => {
           </div>
 
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Hashtags/Tags (optional)</label>
+            <label className="block text-gray-700 font-medium mb-1">
+              Hashtags/Tags (optional)
+            </label>
             <input
               type="text"
               value={tags}
@@ -163,6 +197,25 @@ export const AddPosts = () => {
               placeholder="#grace #hope #biblestudy"
               disabled={uploading}
             />
+          </div>
+
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">
+              Select Client
+            </label>
+            <select
+              value={selectedClient}
+              onChange={(e) => setSelectedClient(e.target.value)}
+              className="w-full border border-gray-300 rounded-md p-3 text-sm focus:ring-teal-500 focus:border-teal-500"
+              disabled={uploading}
+            >
+              <option value="">-- Choose a client --</option>
+              {clients.map((client) => (
+                <option key={client._id} value={client._id}>
+                  {client.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {uploading && (
@@ -184,7 +237,7 @@ export const AddPosts = () => {
               className="w-full sm:w-auto flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-md"
             >
               <Icons.plus className="h-4 w-4" />
-              {uploading ? 'Uploading...' : 'Add Post'}
+              {uploading ? "Uploading..." : "Add Post"}
             </Button>
           </div>
         </form>
