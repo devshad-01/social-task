@@ -14,6 +14,7 @@ import { useTokenRoutes } from './hooks/useTokenRoutes';
 import { PostsPage } from './pages/PostsPage';
 import { AddPosts } from './pages/AddPosts';
 import { PWAInstallPrompt } from './components/common/PWAInstallPrompt';
+import { AddTaskPage } from './pages/AddTaskPage';
 
 // PWA Test (only in development)
 
@@ -107,6 +108,7 @@ export const App = () => {
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="posts" element={<PostsPage />} />
           <Route path="add-post" element={<AddPosts />} />
+          <Route path="add-task" element={<AddTaskPage />} />
       
         </Route>
         

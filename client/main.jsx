@@ -7,6 +7,7 @@ import { NavigationProvider } from '/imports/ui/context/NavigationContext';
 import { ResponsiveProvider } from '/imports/ui/context/ResponsiveContext';
 import { AuthProvider } from '/imports/ui/context/AuthContext';
 import './main.css';
+// import './test-notifications.js'; // Removed to fix module not found error
 
 Meteor.startup(() => {
   const container = document.getElementById('react-target');
