@@ -1,5 +1,6 @@
 import { Accounts } from 'meteor/accounts-base';
 import { Meteor } from 'meteor/meteor';
+import { Roles } from 'meteor/alanning:roles';
 
 // Set up email templates
 const appName = Meteor.settings.public.app?.name || 'App';
@@ -102,3 +103,23 @@ The ${appName} Team`;
     `;
   }
 };
+
+// Assign default role to new users
+Accounts.onCreateUser((options, user) => {
+  // Add profile information if provided
+  if (options.profile) {
+    user.profile = options.profile;
+  }
+
+  // Add creation date
+  user.createdAt = new Date();
+
+  // Assign default role to new users (team members)
+  Meteor.defer(() => {
+    if (!Roles.userIsInRole(user._id, ['admin', 'supervisor'])) {
+      Roles.addUsersToRoles(user._id, ['member']);
+    }
+  });
+
+  return user;
+});

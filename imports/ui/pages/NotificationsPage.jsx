@@ -250,7 +250,7 @@ export const NotificationsPage = () => {
         </div>
       ) : (
         <EmptyState
-          icon={Icons.bell}
+          illustration={React.createElement(Icons.bell, { className: "mx-auto h-12 w-12 text-gray-400" })}
           title="No notifications found"
           description={searchTerm ? 'Try adjusting your search terms' : 'You\'re all caught up!'}
           action={

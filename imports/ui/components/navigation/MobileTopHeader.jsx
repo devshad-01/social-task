@@ -8,7 +8,7 @@ export const MobileTopHeader = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   return (
-    <header className="mobile-header safe-area-top">
+    <header className="mobile-header mobile-header-enhanced safe-area-top">
       <div className="mobile-header-left">
         <button
           onClick={toggleMenu}
@@ -18,22 +18,23 @@ export const MobileTopHeader = () => {
           <Icons.menu />
         </button>
         <div className="mobile-header-title">
-          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center mr-2">
-            <span className="text-white font-bold text-sm">P</span>
+          <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center mr-3">
+            <span className="text-white font-bold text-lg">P</span>
           </div>
-          <span className="text-lg font-semibold text-gray-800">Posty</span>
+          <span>Posty</span>
         </div>
       </div>
 
       <div className="mobile-header-actions">
-        <button className="header-icon-button" aria-label="Search">
-          <Icons.search />
-        </button>
-        
-        <button className="header-icon-button notification-button" aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}>
+        <button 
+          className="header-icon-button notification-button" 
+          aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
+        >
           <Icons.bell />
           {unreadCount > 0 && (
-            <span className="notification-badge">{unreadCount > 99 ? '99+' : unreadCount}</span>
+            <span className="notification-badge notification-badge-enhanced">
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
           )}
         </button>
 
@@ -41,21 +42,22 @@ export const MobileTopHeader = () => {
         <div className="relative">
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="header-icon-button p-1"
+            className="header-icon-button"
             aria-label="User menu"
+            style={{ padding: 0 }}
           >
-            <div className="w-8 h-8 bg-primary-100 text-primary-600 rounded-full flex items-center justify-center font-medium text-sm">
-              {user.avatar ? (
-                <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
+            <div className="user-avatar-mobile">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user.name} />
               ) : (
-                <span>{user.name.split(' ').map(n => n[0]).join('')}</span>
+                <span>{user?.name?.split(' ').map(n => n[0]).join('') || 'U'}</span>
               )}
             </div>
           </button>
 
           {/* User Menu Dropdown */}
           {showUserMenu && (
-            <div className="absolute right-0 top-12 z-50">
+            <div className="absolute right-0 top-14 z-50">
               <UserMenu onClose={() => setShowUserMenu(false)} />
             </div>
           )}

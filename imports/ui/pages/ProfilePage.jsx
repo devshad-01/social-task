@@ -3,6 +3,7 @@ import ProfileUpdateForm from '../components/profile/ProfileUpdateForm';
 import ChangePasswordForm from '../components/profile/ChangePasswordForm';
 import { Icons } from '../components/Icons';
 import { useAuthContext } from '../context/AuthContext';
+import { Meteor } from 'meteor/meteor';
 
 export const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('profile');
@@ -12,6 +13,10 @@ export const ProfilePage = () => {
     { id: 'profile', label: 'Profile', icon: Icons.user },
     { id: 'security', label: 'Security', icon: Icons.settings }
   ];
+
+  const handleLogout = () => {
+    Meteor.logout();
+  };
 
   // Show loading spinner while checking auth
   if (isLoading) {
@@ -26,93 +31,98 @@ export const ProfilePage = () => {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="profile-page">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+      <div className="profile-header">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
-          <p className="text-gray-600 mt-1">Manage your account details and preferences</p>
+          <h1 className="profile-header-title">Profile</h1>
+          <p className="profile-header-subtitle">Manage your account details and preferences</p>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200 mb-8">
-        <nav className="flex space-x-8">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              {React.createElement(tab.icon, { className: "w-4 h-4" })}
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </nav>
+      <div className="profile-tabs">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`profile-tab ${activeTab === tab.id ? 'active' : ''}`}
+          >
+            {React.createElement(tab.icon, { className: "profile-tab-icon" })}
+            <span>{tab.label}</span>
+          </button>
+        ))}
       </div>
 
       {/* Tab Content */}
-      <div>
+      <div className="profile-content">
         {activeTab === 'profile' && (
-          <div className="max-w-4xl">
-            <div className="mb-8">
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                  {user?.profile?.avatar ? (
-                    <img src={user.profile.avatar} alt={user?.profile?.fullName || 'User'} className="h-full w-full object-cover" />
-                  ) : (
-                    <svg className="h-12 w-12 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                  )}
-                </div>
-                <div>
-                  <h2 className="text-xl font-medium text-gray-900">{user?.profile?.fullName || 'User'}</h2>
-                  <p className="text-sm text-gray-500">{user?.emails?.[0]?.address}</p>
-                  <p className="text-sm text-gray-500">
-                    Role: {user?.profile?.role || 'User'} {user?.profile?.department ? `• ${user.profile.department}` : ''}
-                  </p>
+          <div>
+            <div className="profile-avatar-section">
+              <div className="profile-avatar">
+                {user?.profile?.avatar ? (
+                  <img src={user.profile.avatar} alt={user?.profile?.fullName || 'User'} />
+                ) : (
+                  <span>{user?.profile?.fullName?.split(' ').map(n => n[0]).join('') || 'U'}</span>
+                )}
+              </div>
+              <div className="profile-user-info">
+                <h2>{user?.profile?.fullName || 'User'}</h2>
+                <p>{user?.emails?.[0]?.address}</p>
+                <div className="profile-user-role">
+                  <Icons.shield className="profile-verification-icon" />
+                  {user?.profile?.role || 'User'} {user?.profile?.department ? `• ${user.profile.department}` : ''}
                 </div>
               </div>
             </div>
-            <ProfileUpdateForm />
+            
+            <div className="profile-form-section">
+              <ProfileUpdateForm />
+            </div>
           </div>
         )}
 
         {activeTab === 'security' && (
-          <div className="max-w-4xl">
-            <ChangePasswordForm />
+          <div>
+            <div className="profile-form-section">
+              <ChangePasswordForm />
+            </div>
             
-            <div className="mt-8 bg-white shadow rounded-lg p-6">
-              <h2 className="text-xl font-medium text-gray-900 mb-4">Email Verification</h2>
+            <div className="profile-verification-card">
+              <h3>Email Verification</h3>
               
               {user?.emails?.[0]?.verified ? (
-                <div className="flex items-center text-sm text-green-700">
-                  <svg className="h-5 w-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  Your email is verified
+                <div className="profile-verification-status verified">
+                  <Icons.checkCircle className="profile-verification-icon" />
+                  <span>Your email is verified</span>
                 </div>
               ) : (
                 <div>
-                  <div className="flex items-center text-sm text-amber-700 mb-4">
-                    <svg className="h-5 w-5 mr-2 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                    Your email is not verified
+                  <div className="profile-verification-status unverified">
+                    <Icons.alertTriangle className="profile-verification-icon" />
+                    <span>Your email is not verified</span>
                   </div>
                   <button
                     onClick={() => resendVerificationEmail()}
-                    className="px-4 py-2 bg-primary-600 border border-transparent rounded-md font-medium text-sm text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors"
+                    className="profile-button-primary"
                   >
+                    <Icons.mail className="profile-verification-icon" />
                     Resend Verification Email
                   </button>
                 </div>
               )}
+            </div>
+
+            <div className="profile-verification-card" style={{ marginTop: 'var(--spacing-lg)' }}>
+              <h3>Account Actions</h3>
+              <button
+                onClick={handleLogout}
+                className="profile-button-primary"
+                style={{ background: 'var(--status-error)' }}
+              >
+                <Icons.logout className="profile-verification-icon" />
+                Sign Out
+              </button>
             </div>
           </div>
         )}

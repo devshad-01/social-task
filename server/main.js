@@ -1,5 +1,6 @@
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
+import { Roles } from 'meteor/alanning:roles';
 
 // Import API files
 import '../imports/api/users/methods';
@@ -7,6 +8,7 @@ import '../imports/api/users/publications';
 import '../imports/api/users/server/hooks';
 import '../imports/api/posts/methods';
 import '../imports/api/posts/server/publications';
+import '../imports/api/tasks/server';
 import './cloudinary_methods.js';
 import '../imports/api/clients/server/publications';
 import '../imports/startup/server/index.js';
@@ -53,7 +55,10 @@ Meteor.startup(async () => {
       { _id: adminId },
       { $set: { 'emails.0.verified': true } }
     );
+
+    // Assign admin role
+    await Roles.addUsersToRoles(adminId, ['admin']);
     
-    console.log('Admin user created successfully!');
+    console.log('Admin user created successfully with admin role!');
   }
 });
