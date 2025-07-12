@@ -229,13 +229,13 @@ export const SearchResults = ({ query, onQueryChange }) => {
           <Loading message="Searching..." />
         ) : !query.trim() ? (
           <EmptyState
-            icon={Icons.search}
+            illustration={React.createElement(Icons.search, { className: "mx-auto h-12 w-12 text-gray-400" })}
             title="Start Your Search"
             description="Enter a search term above to find tasks, clients, notifications, and team members."
           />
         ) : results.length === 0 ? (
           <EmptyState
-            icon={Icons.search}
+            illustration={React.createElement(Icons.search, { className: "mx-auto h-12 w-12 text-gray-400" })}
             title="No Results Found"
             description={`No results found for "${query}". Try different keywords or filters.`}
           />
