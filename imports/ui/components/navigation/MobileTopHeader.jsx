@@ -19,7 +19,7 @@ export const MobileTopHeader = () => {
           className="header-icon-button"
           aria-label="Open menu"
         >
-          <Icons.menu />
+          <Icons.menu className="hamburger-icon" />
         </button>
       </div>
 
