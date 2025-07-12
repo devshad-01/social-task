@@ -167,7 +167,7 @@ export const DataTable = ({
           <div className="p-8">
             {emptyState || (
               <EmptyState
-                icon={Icons.inbox}
+                illustration={React.createElement(Icons.inbox, { className: "mx-auto h-12 w-12 text-gray-400" })}
                 title="No data available"
                 description="No items match your current search criteria."
               />

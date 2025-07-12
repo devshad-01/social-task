@@ -13,7 +13,7 @@ export const MobileLayout = ({ children }) => {
       <MobileSidebar />
 
       {/* Main Content */}
-      <main className="content-container mobile-content">
+      <main className="content-container mobile-content mobile-content-enhanced">
         {children}
       </main>
 

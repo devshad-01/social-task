@@ -53,7 +53,7 @@ export const ErrorPage = ({ error, onRetry, onGoHome }) => {
     <div className="min-h-screen flex items-center justify-center p-6">
       <div className="max-w-md w-full">
         <EmptyState
-          icon={ErrorIcon}
+          illustration={ErrorIcon}
           title={errorInfo.title}
           description={errorInfo.description}
           className="text-center"
