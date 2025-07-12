@@ -1,20 +1,43 @@
 import React, { useContext, useState } from 'react';
 import { Icons } from '../Icons';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { NavigationContext } from '../../context/NavigationContext';
 
 export const BottomTabBar = () => {
-  const { navigationItems, activeTab, setActiveTab } = useContext(NavigationContext);
+  const { navigationItems, activeTab, setActiveTab, canCreateTasks } = useContext(NavigationContext);
   const [showAddModal, setShowAddModal] = useState(false);
+  const navigate = useNavigate();
   
-  // Filter to main navigation items for bottom bar (dashboard, tasks, clients, profile)
-  const mainTabs = navigationItems.filter(item => 
-    ['dashboard', 'tasks', 'clients', 'profile'].includes(item.id)
-  );
+  // Filter and reorder navigation items for bottom bar
+  // For admin: dashboard, tasks, clients, profile (with add button)
+  // For user: dashboard, tasks, clients, profile (no add button)
+  const getOrderedTabs = () => {
+    const allTabs = navigationItems.filter(item => 
+      ['dashboard', 'tasks', 'clients', 'profile'].includes(item.id)
+    );
+    
+    // Reorder: clients and profile swapped for admin layout
+    const dashboard = allTabs.find(item => item.id === 'dashboard');
+    const tasks = allTabs.find(item => item.id === 'tasks');
+    const clients = allTabs.find(item => item.id === 'clients');
+    const profile = allTabs.find(item => item.id === 'profile');
+    
+    if (canCreateTasks) {
+      // For admin: dashboard, tasks, [add button], clients, profile
+      return {
+        leftTabs: [dashboard, tasks].filter(Boolean),
+        rightTabs: [clients, profile].filter(Boolean)
+      };
+    } else {
+      // For user: dashboard, tasks, clients, profile (no add button)
+      return {
+        leftTabs: [dashboard, tasks].filter(Boolean),
+        rightTabs: [clients, profile].filter(Boolean)
+      };
+    }
+  };
 
-  // Split tabs to show add button in center
-  const leftTabs = mainTabs.slice(0, 2); // dashboard, tasks
-  const rightTabs = mainTabs.slice(2); // clients, profile
+  const { leftTabs, rightTabs } = getOrderedTabs();
 
   const handleAddClick = () => {
     setShowAddModal(true);
@@ -23,11 +46,9 @@ export const BottomTabBar = () => {
   const handleAddOption = (option) => {
     setShowAddModal(false);
     if (option === 'task') {
-      // Navigate to add task
-      window.location.href = '/add-post';
-    } else if (option === 'social') {
-      // Open social account modal (you can implement this)
-      console.log('Add social account');
+      navigate('/add-task');
+    } else if (option === 'post') {
+      navigate('/add-post');
     }
   };
 
@@ -65,13 +86,15 @@ export const BottomTabBar = () => {
             );
           })}
           
-          {/* Center Add Button */}
-          <button
-            onClick={handleAddClick}
-            className="bottom-tab-add-button"
-          >
-            <Icons.plus />
-          </button>
+          {/* Center Add Button - Only show for admin/managers */}
+          {canCreateTasks && (
+            <button
+              onClick={handleAddClick}
+              className="bottom-tab-add-button"
+            >
+              <Icons.plus />
+            </button>
+          )}
           
           {/* Right tabs */}
           {rightTabs.map((item) => {
@@ -128,15 +151,15 @@ export const BottomTabBar = () => {
                 <span className="font-medium">Add Task</span>
               </button>
               <button
-                onClick={() => handleAddOption('social')}
+                onClick={() => handleAddOption('post')}
                 className="w-full flex items-center gap-3 p-3 rounded-lg transition-colors hover-lift"
                 style={{ 
                   backgroundColor: 'var(--secondary-50)',
                   color: 'var(--secondary-700)'
                 }}
               >
-                <Icons.facebook className="w-5 h-5" style={{ color: 'var(--secondary-600)' }} />
-                <span className="font-medium">Add Social Account</span>
+                <Icons.post className="w-5 h-5" style={{ color: 'var(--secondary-600)' }} />
+                <span className="font-medium">Add Post</span>
               </button>
             </div>
             <button

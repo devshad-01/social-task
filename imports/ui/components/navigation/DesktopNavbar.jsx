@@ -1,19 +1,40 @@
 import React, { useState, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Icons } from '../Icons';
 import { NavigationContext } from '../../context/NavigationContext';
-import { NotificationBell } from './NotificationBell';
+import { NotificationBell } from '../notifications/NotificationBell';
 import { UserMenu } from './UserMenu';
 
 export const DesktopNavbar = () => {
-  const { navigationItems, activeTab, setActiveTab, unreadCount, user, notifications } = useContext(NavigationContext);
+  const { 
+    navigationItems, 
+    activeTab, 
+    setActiveTab, 
+    unreadCount, 
+    user, 
+    notifications,
+    markNotificationAsRead,
+    markAllNotificationsAsRead
+  } = useContext(NavigationContext);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const navigate = useNavigate();
 
   // Filter navigation items for desktop navbar
   const mainNavItems = navigationItems.filter(item => 
     ['dashboard', 'tasks', 'clients', 'team', 'analytics','posts'].includes(item.id)
   );
+
+  const handleNotificationClick = (notification) => {
+    if (notification.actionUrl) {
+      navigate(notification.actionUrl);
+    } else {
+      navigate('/notifications');
+    }
+    if (notification.id) {
+      markNotificationAsRead(notification.id);
+    }
+  };
 
   return (
     <nav className="desktop-navbar">
@@ -71,6 +92,15 @@ export const DesktopNavbar = () => {
             </div>
           </div>
 
+          {/* Notifications */}
+          <div className="desktop-notification-container">
+            <NotificationBell 
+              notifications={notifications}
+              onMarkAllAsRead={markAllNotificationsAsRead}
+              onNotificationClick={handleNotificationClick}
+            />
+          </div>
+
           {/* User Menu */}
           <div className="user-menu-container">
             <button
@@ -78,15 +108,17 @@ export const DesktopNavbar = () => {
               className="user-menu-button"
             >
               <div className="user-avatar">
-                {user.avatar ? (
+                {user?.avatar ? (
                   <img src={user.avatar} alt={user.name} className="avatar-image" />
                 ) : (
-                  <span className="text-sm font-medium">{user.name.split(' ').map(n => n[0]).join('')}</span>
+                  <span className="text-sm font-medium">
+                    {user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
+                  </span>
                 )}
               </div>
               <div className="user-info">
-                <div className="user-name">{user.name}</div>
-                <div className="user-role">{user.role.replace('-', ' ')}</div>
+                <div className="user-name">{user?.name || 'User'}</div>
+                <div className="user-role">{user?.role?.replace('-', ' ') || 'User'}</div>
               </div>
               <Icons.chevronDown className="menu-arrow-icon" />
             </button>

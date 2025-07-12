@@ -82,6 +82,33 @@
   object-fit: cover;
 }
 
+/* Clean notification button without background */
+.header-icon-button-clean {
+  background: transparent !important;
+  border: none !important;
+  color: var(--neutral-600);
+  transition: color var(--transition-normal);
+  position: relative;
+  padding: 8px;
+  border-radius: var(--radius-lg);
+}
+
+.header-icon-button-clean:hover {
+  color: var(--neutral-800);
+  background: transparent !important;
+  transform: none;
+  box-shadow: none;
+}
+
+.header-icon-button-clean svg {
+  width: 24px;
+  height: 24px;
+}
+
+.notification-button-clean {
+  position: relative;
+}
+
 /* Enhanced Mobile Sidebar */
 .mobile-sidebar-enhanced {
   width: 320px;
@@ -301,6 +328,18 @@
 .bottom-tab-bar-enhanced .bottom-tab-add-button svg {
   width: 24px;
   height: 24px;
+}
+
+/* Bottom tab bar without add button - distribute evenly */
+.bottom-tab-bar-enhanced .bottom-tab-container:not(:has(.bottom-tab-add-button)) .bottom-tab-item {
+  flex: 1;
+  max-width: 25%; /* Distribute 4 tabs evenly */
+}
+
+/* Bottom tab bar with add button - adjust for center space */
+.bottom-tab-bar-enhanced .bottom-tab-container:has(.bottom-tab-add-button) .bottom-tab-item {
+  flex: 1;
+  max-width: 20%; /* Distribute around center add button */
 }
 
 /* Safe Area Support */
