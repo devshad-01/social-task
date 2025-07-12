@@ -9,6 +9,8 @@ import '../imports/api/users/server/hooks';
 import '../imports/api/posts/methods';
 import '../imports/api/posts/server/publications';
 import '../imports/api/tasks/server';
+import '../imports/api/notifications/methods';
+import '../imports/api/notifications/server/publications';
 import './cloudinary_methods.js';
 import '../imports/api/clients/server/publications';
 import '../imports/startup/server/index.js';
