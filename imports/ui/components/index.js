@@ -24,6 +24,7 @@ export { EmptyState } from './common/EmptyState';
 export { Input, TextArea, Select, Checkbox, FileInput } from './common/Input';
 export { Toast, ToastContainer, useToast } from './common/Toast';
 export { DataTable } from './common/DataTable';
+export { PWAInstallPrompt } from './common/PWAInstallPrompt';
 
 // Auth Components
 export { AuthLayout } from './auth/AuthLayout';
