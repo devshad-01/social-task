@@ -12,6 +12,8 @@ import '../imports/api/tasks/server';
 import './cloudinary_methods.js';
 import '../imports/api/clients/server/publications';
 import '../imports/startup/server/index.js';
+import '../imports/api/clients/FacebookPosts.js';
+import '../imports/api/clients/InstagramPosts.js'; 
 
 
 Meteor.startup(async () => {
