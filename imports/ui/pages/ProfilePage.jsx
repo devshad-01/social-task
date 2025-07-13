@@ -3,19 +3,52 @@ import ProfileUpdateForm from '../components/profile/ProfileUpdateForm';
 import ChangePasswordForm from '../components/profile/ChangePasswordForm';
 import { Icons } from '../components/Icons';
 import { useAuthContext } from '../context/AuthContext';
+import { WebPushService } from '../../api/notifications/webPush';
 import { Meteor } from 'meteor/meteor';
 
 export const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('profile');
+  const [notificationPermission, setNotificationPermission] = useState(Notification.permission);
   const { user, isLoading, resendVerificationEmail } = useAuthContext();
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: Icons.user },
-    { id: 'security', label: 'Security', icon: Icons.settings }
+    { id: 'security', label: 'Security', icon: Icons.settings },
+    { id: 'notifications', label: 'Notifications', icon: Icons.bell }
   ];
 
   const handleLogout = () => {
     Meteor.logout();
+  };
+
+  const handleEnableNotifications = async () => {
+    try {
+      const granted = await WebPushService.requestPermission();
+      setNotificationPermission(granted ? 'granted' : 'denied');
+      if (granted) {
+        // Send a test notification
+        await WebPushService.sendNotification({
+          title: 'Notifications Enabled!',
+          message: 'You will now receive push notifications for task updates.',
+          actionUrl: '/notifications'
+        });
+      }
+    } catch (error) {
+      console.error('Error enabling notifications:', error);
+    }
+  };
+
+  const handleTestNotification = async () => {
+    try {
+      await WebPushService.sendNotification({
+        title: 'Test Notification',
+        message: 'This is a test notification to check if everything is working correctly!',
+        actionUrl: '/dashboard'
+      });
+    } catch (error) {
+      console.error('Error sending test notification:', error);
+      alert('Failed to send test notification. Please make sure notifications are enabled.');
+    }
   };
 
   // Show loading spinner while checking auth
@@ -123,6 +156,85 @@ export const ProfilePage = () => {
                 <Icons.logout className="profile-verification-icon" />
                 Sign Out
               </button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'notifications' && (
+          <div>
+            <div className="profile-verification-card">
+              <h3>Browser Notifications</h3>
+              <p className="mb-4 text-gray-600">Get instant notifications for task assignments, updates, and other important activities.</p>
+              
+              <div className="profile-verification-status">
+                <Icons.bell className="profile-verification-icon" />
+                <span>
+                  Status: {notificationPermission === 'granted' 
+                    ? 'Enabled' 
+                    : notificationPermission === 'denied' 
+                    ? 'Blocked' 
+                    : 'Not Set'
+                  }
+                </span>
+              </div>
+
+              <div className="flex gap-3 mt-4">
+                {notificationPermission !== 'granted' && (
+                  <button
+                    onClick={handleEnableNotifications}
+                    className="profile-button-primary"
+                  >
+                    <Icons.bell className="profile-verification-icon" />
+                    Enable Notifications
+                  </button>
+                )}
+                
+                {notificationPermission === 'granted' && (
+                  <button
+                    onClick={handleTestNotification}
+                    className="profile-button-primary"
+                    style={{ background: 'var(--primary-600)' }}
+                  >
+                    <Icons.send className="profile-verification-icon" />
+                    Send Test Notification
+                  </button>
+                )}
+              </div>
+
+              {notificationPermission === 'denied' && (
+                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-800 text-sm">
+                    Notifications are blocked. To enable them, click the lock icon in your browser's address bar and allow notifications.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="profile-verification-card" style={{ marginTop: 'var(--spacing-lg)' }}>
+              <h3>Notification Preferences</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="font-medium">Task Assignments</label>
+                    <p className="text-sm text-gray-600">Notify when tasks are assigned to you</p>
+                  </div>
+                  <input type="checkbox" defaultChecked className="form-checkbox" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="font-medium">Task Completions</label>
+                    <p className="text-sm text-gray-600">Notify when assigned tasks are completed</p>
+                  </div>
+                  <input type="checkbox" defaultChecked className="form-checkbox" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="font-medium">Due Date Reminders</label>
+                    <p className="text-sm text-gray-600">Notify about upcoming due dates</p>
+                  </div>
+                  <input type="checkbox" defaultChecked className="form-checkbox" />
+                </div>
+              </div>
             </div>
           </div>
         )}
