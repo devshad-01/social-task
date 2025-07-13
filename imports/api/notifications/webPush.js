@@ -26,8 +26,8 @@ export const WebPushService = {
   /**
    * Send a browser notification
    */
-  async sendNotification({ title, message, actionUrl, icon = '/icons/icon-192.png' }) {
-    console.log('[WebPushService] Sending notification:', { title, message, actionUrl });
+  async sendNotification({ title, message, actionUrl, icon = '/icons/icon-192.png', data = {} }) {
+    console.log('[WebPushService] Sending notification:', { title, message, actionUrl, data });
     
     if (!('Notification' in window)) {
       console.warn('Browser does not support notifications');
@@ -56,6 +56,7 @@ export const WebPushService = {
         badge: icon,
         tag: 'posty-notification',
         requireInteraction: true,
+        data: { actionUrl, ...data },
         actions: actionUrl ? [
           {
             action: 'view',
@@ -71,7 +72,7 @@ export const WebPushService = {
         if (actionUrl) {
           // Use router to navigate
           const event = new CustomEvent('notification-click', {
-            detail: { actionUrl }
+            detail: { actionUrl, data }
           });
           window.dispatchEvent(event);
         }
@@ -93,22 +94,30 @@ export const WebPushService = {
   /**
    * Send notification to user when they're mentioned in a task
    */
-  async notifyTaskAssignment(taskTitle, assignedBy) {
+  async notifyTaskAssignment(taskTitle, assignedBy, taskId) {
     return this.sendNotification({
       title: 'New Task Assigned',
       message: `${assignedBy} assigned you a task: ${taskTitle}`,
-      actionUrl: '/tasks'
+      actionUrl: `/tasks/${taskId}`,
+      data: { 
+        type: 'task_assigned',
+        taskId: taskId 
+      }
     });
   },
 
   /**
    * Send notification when task is completed
    */
-  async notifyTaskCompleted(taskTitle, completedBy) {
+  async notifyTaskCompleted(taskTitle, completedBy, taskId) {
     return this.sendNotification({
       title: 'Task Completed',
       message: `${completedBy} completed: ${taskTitle}`,
-      actionUrl: '/tasks'
+      actionUrl: `/tasks/${taskId}`,
+      data: { 
+        type: 'task_completed',
+        taskId: taskId 
+      }
     });
   }
 };

@@ -25,11 +25,12 @@ export const MobileTopHeader = () => {
 
       <div className="mobile-header-actions">
         <button 
-          className="header-icon-button-clean notification-button-clean" 
+          className="header-icon-button-clean notification-button-clean"
           aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
           onClick={handleNotificationClick}
+          style={{ position: 'relative' }}
         >
-          <Icons.bell />
+          <Icons.bell className="notification-bell-icon" />
           {unreadCount > 0 && (
             <span className="notification-badge notification-badge-enhanced">
               {unreadCount > 99 ? '99+' : unreadCount}

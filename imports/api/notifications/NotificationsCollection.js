@@ -68,6 +68,12 @@ Notifications.schema = new SimpleSchema({
     optional: true,
     blackbox: true
   },
+  data: {
+    type: Object,
+    optional: true,
+    blackbox: true
+    // Additional data for client-side handling (e.g., taskId, clientId, etc.)
+  },
   createdAt: {
     type: Date,
     autoValue: function() {

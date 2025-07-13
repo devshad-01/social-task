@@ -59,6 +59,12 @@ export const TaskModal = ({
     }
   };
 
+  const handleCompleteTask = () => {
+    if (window.confirm('Are you sure you want to mark this task as complete?')) {
+      onSave({ ...task, status: 'completed' });
+    }
+  };
+
   const validateForm = () => {
     const newErrors = {};
     
@@ -306,18 +312,16 @@ export const TaskModal = ({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            
             {!isViewMode && (
               <Button type="submit" loading={loading}>
                 {isCreateMode ? 'Create Task' : 'Save Changes'}
               </Button>
             )}
-            
             {isViewMode && task?.status !== 'completed' && (
               <Button 
                 type="button" 
                 variant="success"
-                onClick={() => onSave({ ...task, status: 'completed' })}
+                onClick={handleCompleteTask}
               >
                 Mark as Complete
               </Button>

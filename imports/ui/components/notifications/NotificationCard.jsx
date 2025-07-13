@@ -8,7 +8,9 @@ export const NotificationCard = ({
   notification, 
   onMarkAsRead, 
   onAction,
-  onDelete 
+  onDelete,
+  onClick,
+  highlight = false
 }) => {
   const getTypeIcon = (type) => {
     switch (type) {
@@ -95,7 +97,7 @@ export const NotificationCard = ({
   };
 
   return (
-    <Card className={`${!notification.read ? getTypeColor(notification.type) : ''} hover:shadow-md transition-shadow`}>
+    <Card className={`${highlight ? 'ring-2 ring-primary-500 border-primary-400' : ''} ${!notification.read ? getTypeColor(notification.type) : ''} hover:shadow-md transition-shadow`} onClick={onClick}>
       <CardContent padding="md">
         <div className="flex items-start space-x-3">
           <div className="flex-shrink-0">
