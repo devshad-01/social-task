@@ -275,7 +275,7 @@ export const TasksPage = () => {
           onSave={handleUpdateTask}
           onDelete={() => handleDeleteTask(selectedTask._id)}
           task={selectedTask}
-          mode={isAdmin || selectedTask.assigneeIds.includes(user?._id) ? "edit" : "view"}
+          mode={isAdmin ? "edit" : "view"}
           canDelete={isAdmin}
         />
       )}

@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Meteor } from 'meteor/meteor';
 import { Notifications as NotificationsCollection } from '../../api/notifications/NotificationsCollection';
+import { WebPushService } from '../../api/notifications/webPush';
 
 // Define the shape of our navigation state
 const initialState = {
@@ -70,6 +71,44 @@ export const NavigationProvider = ({ children }) => {
     else if (path === '/posts') setActiveTab('posts');
 
   }, [location]);
+
+  // Watch for new notifications and trigger web push
+  useEffect(() => {
+    if (notifications.length > 0) {
+      const latestNotification = notifications[0];
+      
+      // Only send web push for unread notifications that are less than 10 seconds old
+      const isRecent = latestNotification.createdAt && 
+        (new Date() - new Date(latestNotification.createdAt)) < 10000;
+      
+      if (!latestNotification.read && isRecent) {
+        console.log('[NavigationContext] Sending web push for new notification:', latestNotification);
+        
+        // Send web push notification based on type
+        if (latestNotification.type === 'task_assigned') {
+          WebPushService.notifyTaskAssignment(
+            latestNotification.metadata?.taskTitle || 'New Task',
+            latestNotification.metadata?.userName || 'Someone',
+            latestNotification.data?.taskId || latestNotification.relatedId
+          );
+        } else if (latestNotification.type === 'task_completed') {
+          WebPushService.notifyTaskCompleted(
+            latestNotification.metadata?.taskTitle || 'Task',
+            latestNotification.metadata?.userName || 'Someone',
+            latestNotification.data?.taskId || latestNotification.relatedId
+          );
+        } else {
+          // Generic notification
+          WebPushService.sendNotification({
+            title: latestNotification.title || 'New Notification',
+            message: latestNotification.message || 'You have a new notification',
+            actionUrl: latestNotification.actionUrl || '/notifications',
+            data: latestNotification.data || {}
+          });
+        }
+      }
+    }
+  }, [notifications]);
 
   // Notification actions
   const markNotificationAsRead = (notificationId) => {

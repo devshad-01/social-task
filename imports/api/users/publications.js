@@ -66,3 +66,33 @@ Meteor.publish('users.team', function() {
     }
   );
 });
+
+/**
+ * Publish all users for admin/supervisor use (e.g., task assignment)
+ * Only publish essential data for assignment purposes
+ */
+Meteor.publish('users.all', async function() {
+  if (!this.userId) {
+    return this.ready();
+  }
+  
+  // Only allow admins and supervisors to see all users
+  const user = await Meteor.users.findOneAsync(this.userId);
+  if (!user || !['admin', 'supervisor'].includes(user.profile?.role)) {
+    return this.ready();
+  }
+  
+  return Meteor.users.find(
+    {},
+    {
+      fields: {
+        emails: 1,
+        'profile.firstName': 1,
+        'profile.lastName': 1,
+        'profile.fullName': 1,
+        'profile.role': 1,
+        'profile.avatar': 1
+      }
+    }
+  );
+});
