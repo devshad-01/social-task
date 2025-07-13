@@ -57,6 +57,12 @@ Meteor.startup(() => {
           // Listen for service worker messages
           navigator.serviceWorker.addEventListener('message', (event) => {
             console.log('Message from SW:', event.data);
+            
+            // Handle navigation messages from service worker
+            if (event.data && event.data.type === 'NAVIGATE' && event.data.url) {
+              console.log('Navigating to:', event.data.url);
+              window.location.href = event.data.url;
+            }
           });
         })
         .catch((registrationError) => {
@@ -65,12 +71,27 @@ Meteor.startup(() => {
     });
   }
 
+  // Request notification permission on site visit if not already set
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission().then((permission) => {
+      if (permission === "granted") {
+        // Optionally, register for push here
+        if (WebPushService && WebPushService.subscribe) {
+          WebPushService.subscribe();
+        }
+      }
+    });
+  }
+
   // Handle notification clicks for web push
   window.addEventListener('notification-click', (event) => {
-    const { actionUrl } = event.detail;
+    const { actionUrl, data } = event.detail;
     if (actionUrl) {
       // Use window.location for navigation since we're outside React Router context
       window.location.href = actionUrl;
+    } else if (data && data.taskId) {
+      // Fallback for task notifications
+      window.location.href = `/tasks/${data.taskId}`;
     }
   });
 });

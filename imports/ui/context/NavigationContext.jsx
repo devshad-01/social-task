@@ -88,19 +88,22 @@ export const NavigationProvider = ({ children }) => {
         if (latestNotification.type === 'task_assigned') {
           WebPushService.notifyTaskAssignment(
             latestNotification.metadata?.taskTitle || 'New Task',
-            latestNotification.metadata?.userName || 'Someone'
+            latestNotification.metadata?.userName || 'Someone',
+            latestNotification.data?.taskId || latestNotification.relatedId
           );
         } else if (latestNotification.type === 'task_completed') {
           WebPushService.notifyTaskCompleted(
             latestNotification.metadata?.taskTitle || 'Task',
-            latestNotification.metadata?.userName || 'Someone'
+            latestNotification.metadata?.userName || 'Someone',
+            latestNotification.data?.taskId || latestNotification.relatedId
           );
         } else {
           // Generic notification
           WebPushService.sendNotification({
             title: latestNotification.title || 'New Notification',
             message: latestNotification.message || 'You have a new notification',
-            actionUrl: latestNotification.actionUrl || '/notifications'
+            actionUrl: latestNotification.actionUrl || '/notifications',
+            data: latestNotification.data || {}
           });
         }
       }

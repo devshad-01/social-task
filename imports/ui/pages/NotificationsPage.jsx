@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Meteor } from 'meteor/meteor';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/common/Card';
@@ -13,8 +14,11 @@ import { Notifications as NotificationsCollection } from '../../api/notification
 import { Icons } from '../components/Icons';
 
 export const NotificationsPage = () => {
+  const { id: highlightId } = useParams();
+  const navigate = useNavigate();
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedNotification, setSelectedNotification] = useState(null);
   const { markNotificationAsRead, markAllNotificationsAsRead } = useContext(NavigationContext);
 
   // Track notifications with Meteor's reactive data
@@ -67,11 +71,17 @@ export const NotificationsPage = () => {
         await markNotificationAsRead(notification._id);
       }
       
-      // Navigate to the notification's action URL
-      if (notification.actionUrl) {
-        console.log('Navigating to:', notification.actionUrl);
-        // In a real app, this would use React Router or similar
-        // window.location.href = notification.actionUrl;
+      // Check if notification is task-related and has a taskId
+      if (notification.type && notification.type.startsWith('task_') && notification.data?.taskId) {
+        // Redirect to task details page
+        navigate(`/tasks/${notification.data.taskId}`);
+      } else if (notification.actionUrl) {
+        // If actionUrl is present, redirect to it
+        window.open(notification.actionUrl, '_self');
+      } else {
+        // Otherwise, highlight/show the notification detail
+        setSelectedNotification(notification);
+        navigate(`/notifications/${notification._id}`);
       }
     } catch (error) {
       console.error('Error handling notification click:', error);
@@ -193,6 +203,7 @@ export const NotificationsPage = () => {
               key={notification._id}
               notification={notification}
               onClick={() => handleNotificationClick(notification)}
+              highlight={highlightId === notification._id}
             />
           ))}
         </div>
@@ -209,6 +220,14 @@ export const NotificationsPage = () => {
             ) : null
           }
         />
+      )}
+      {/* Optional: Render detail view if selectedNotification and no actionUrl */}
+      {selectedNotification && !selectedNotification.actionUrl && (
+        <div className="mt-8 p-6 bg-white rounded-xl shadow-lg border border-gray-200">
+          <h2 className="text-xl font-bold mb-2">{selectedNotification.title}</h2>
+          <p className="mb-2 text-gray-700">{selectedNotification.message}</p>
+          <div className="text-sm text-gray-500">{new Date(selectedNotification.createdAt).toLocaleString()}</div>
+        </div>
       )}
     </div>
   );
