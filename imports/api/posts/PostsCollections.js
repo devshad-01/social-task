@@ -1,11 +1,10 @@
 // imports/api/PostsCollection.js
 import { Mongo } from 'meteor/mongo';
 import SimpleSchema from 'simpl-schema';
-import 'meteor/aldeed:collection2/dynamic'; // Required for Collection2
 
 export const PostsCollection = new Mongo.Collection('posts');
 
-PostsCollection.schema = new SimpleSchema({
+const PostsSchema = new SimpleSchema({
   caption: {
     type: String,
     max: 500,
@@ -47,10 +46,10 @@ PostsCollection.schema = new SimpleSchema({
     optional: true, // or false if required
   },
   clientId: {
-  type: String,
-  optional: true, // If not every post must have a client
-},
+    type: String,
+    optional: true, // If not every post must have a client
+  },
 });
 
-// Attach schema
-Collection2.load(PostsCollection, PostsCollection.schema);
+// Export the schema for use in methods
+export { PostsSchema };

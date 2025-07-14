@@ -1,14 +1,12 @@
 import { Mongo } from 'meteor/mongo';
 import SimpleSchema from 'simpl-schema';
 import { Roles } from 'meteor/alanning:roles';
-import 'meteor/aldeed:collection2/dynamic'; // Required for Collection2
-import { Collection2 } from 'meteor/aldeed:collection2';
 
 // Create the Tasks collection
 export const Tasks = new Mongo.Collection('tasks');
 
 // Define the schema for Tasks
-Tasks.schema = new SimpleSchema({
+const TaskSchema = new SimpleSchema({
   title: {
     type: String,
     max: 200,
@@ -117,11 +115,8 @@ Tasks.schema = new SimpleSchema({
   }
 });
 
-// Attach the schema to the collection
-Collection2.load(Tasks, Tasks.schema);
-
 // Export the schema for use in methods
-export const TaskSchema = Tasks.schema;
+export { TaskSchema };
 
 // Helper functions for tasks (not collection helpers)
 export const TaskHelpers = {
