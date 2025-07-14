@@ -11,6 +11,7 @@
   "lang": "en",
   "categories": ["productivity", "business"],
   "prefer_related_applications": false,
+  "gcm_sender_id": "103953800507",
   "icons": [
     {
       "src": "/icons/icon-72.png",

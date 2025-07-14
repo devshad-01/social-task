@@ -54,13 +54,14 @@ export const WebPushService = {
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.ready;
         
-        // Use service worker registration for mobile compatibility
+        // Use a unique tag for each notification (e.g., taskId or timestamp)
+        const uniqueTag = data.taskId ? `posty-task-${data.taskId}` : `posty-notification-${Date.now()}`;
         await registration.showNotification(title, {
           body: message,
           icon: icon,
           badge: icon,
-          tag: 'posty-notification',
-          requireInteraction: false, // Changed to false for better mobile UX
+          tag: uniqueTag,
+          requireInteraction: false, // Better mobile UX
           data: { actionUrl, ...data },
           actions: actionUrl ? [
             {
