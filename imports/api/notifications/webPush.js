@@ -50,41 +50,62 @@ export const WebPushService = {
     }
 
     try {
-      const notification = new Notification(title, {
-        body: message,
-        icon: icon,
-        badge: icon,
-        tag: 'posty-notification',
-        requireInteraction: true,
-        data: { actionUrl, ...data },
-        actions: actionUrl ? [
-          {
-            action: 'view',
-            title: 'View',
-            icon: icon
+      // Check if we have a service worker registration (required for mobile)
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        
+        // Use service worker registration for mobile compatibility
+        await registration.showNotification(title, {
+          body: message,
+          icon: icon,
+          badge: icon,
+          tag: 'posty-notification',
+          requireInteraction: false, // Changed to false for better mobile UX
+          data: { actionUrl, ...data },
+          actions: actionUrl ? [
+            {
+              action: 'view',
+              title: 'View',
+              icon: icon
+            }
+          ] : [],
+          vibrate: [100, 50, 100] // Add vibration for mobile
+        });
+        
+        console.log('[WebPushService] Notification sent via service worker');
+        return true;
+      } else {
+        // Fallback for browsers without service worker support
+        const notification = new Notification(title, {
+          body: message,
+          icon: icon,
+          badge: icon,
+          tag: 'posty-notification',
+          requireInteraction: true,
+          data: { actionUrl, ...data }
+        });
+
+        // Handle notification click
+        notification.onclick = () => {
+          window.focus();
+          if (actionUrl) {
+            // Use router to navigate
+            const event = new CustomEvent('notification-click', {
+              detail: { actionUrl, data }
+            });
+            window.dispatchEvent(event);
           }
-        ] : []
-      });
+          notification.close();
+        };
 
-      // Handle notification click
-      notification.onclick = () => {
-        window.focus();
-        if (actionUrl) {
-          // Use router to navigate
-          const event = new CustomEvent('notification-click', {
-            detail: { actionUrl, data }
-          });
-          window.dispatchEvent(event);
-        }
-        notification.close();
-      };
+        // Auto-close after 5 seconds
+        setTimeout(() => {
+          notification.close();
+        }, 5000);
 
-      // Auto-close after 5 seconds
-      setTimeout(() => {
-        notification.close();
-      }, 5000);
-
-      return true;
+        console.log('[WebPushService] Notification sent via Notification API');
+        return true;
+      }
     } catch (error) {
       console.error('[WebPushService] Failed to send notification:', error);
       return false;
