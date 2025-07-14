@@ -6,7 +6,6 @@ import { X } from 'lucide-react';
 
 import { ClientAccountsCollection } from '/imports/api/clientsaccounts/AccountsClients.js';
 
-
 const ClientsModal = ({ isOpen, onClose, post, toast }) => {
   const [selectedAccountId, setSelectedAccountId] = useState('');
   const [loadingPost, setLoadingPost] = useState(false);
@@ -20,32 +19,59 @@ const ClientsModal = ({ isOpen, onClose, post, toast }) => {
     };
   }, []);
 
-const handleSubmit = async () => {
-  const account = accounts.find((a) => a._id === selectedAccountId);
-  if (!account) return;
+  const handlePostToFacebook = async () => {
+    const account = accounts.find((a) => a._id === selectedAccountId);
+    if (!account) return;
 
-  setLoadingPost(true);
-  setError(null);
+    setLoadingPost(true);
+    setError(null);
 
-  try {
-    const result = await Meteor.callAsync('facebook.postToPageFeed', {
-      pageId: account.facebookPage.id,
-      accessToken: account.facebookPage.access_token,
-      message: post.caption,
-      mediaUrl: post.mediaUrl,
-    });
+    try {
+      const result = await Meteor.callAsync('facebook.postToPageFeed', {
+        pageId: account.facebookPage.id,
+        accessToken: account.facebookPage.access_token,
+        message: post.caption,
+        mediaUrl: post.mediaUrl,
+      });
 
-    toast?.showSuccess(' Post shared to Facebook!');
-    onClose();
-  } catch (err) {
-    console.error('❌ Error posting to Facebook:', err);
-    const message = err.reason || 'Something went wrong';
-    setError(message);
-    toast?.showError(`❌ ${message}`);
-  } finally {
-    setLoadingPost(false);
-  }
-};
+      toast?.showSuccess('✅ Post shared to Facebook!');
+      onClose();
+    } catch (err) {
+      const message = err.reason || 'Something went wrong posting to Facebook.';
+      setError(message);
+      toast?.showError(`❌ ${message}`);
+    } finally {
+      setLoadingPost(false);
+    }
+  };
+
+  const handlePostToInstagram = async () => {
+    const account = accounts.find((a) => a._id === selectedAccountId);
+    if (!account?.instagramAccount) {
+      return toast?.showError('No connected Instagram account.');
+    }
+
+    setLoadingPost(true);
+    setError(null);
+
+    try {
+      const result = await Meteor.callAsync('instagram.postToMedia', {
+        instagramUserId: account.instagramAccount.id,
+        accessToken: account.facebookPage.access_token, // still using page's token
+        imageUrl: post.mediaUrl,
+        caption: post.caption,
+      });
+
+      toast?.showSuccess('📸 Post shared to Instagram!');
+      onClose();
+    } catch (err) {
+      const message = err.reason || 'Something went wrong posting to Instagram.';
+      setError(message);
+      toast?.showError(`❌ ${message}`);
+    } finally {
+      setLoadingPost(false);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
@@ -118,7 +144,7 @@ const handleSubmit = async () => {
             </div>
           )}
 
-          <div className="mt-6 flex justify-end gap-3">
+          <div className="mt-6 flex justify-end gap-3 flex-wrap">
             <button
               onClick={onClose}
               className="px-4 py-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -127,11 +153,18 @@ const handleSubmit = async () => {
               Cancel
             </button>
             <button
-              onClick={handleSubmit}
+              onClick={handlePostToFacebook}
               disabled={!selectedAccountId || loadingPost}
               className="px-4 py-2 rounded bg-[#3ca1ad] text-white hover:bg-[#2f8d99]"
             >
-              {loadingPost ? 'Sharing...' : 'Share Now'}
+              {loadingPost ? 'Sharing...' : 'Post to Facebook'}
+            </button>
+            <button
+              onClick={handlePostToInstagram}
+              disabled={!selectedAccountId || loadingPost}
+              className="px-4 py-2 rounded bg-pink-600 text-white hover:bg-pink-700"
+            >
+              {loadingPost ? 'Sharing...' : 'Post to Instagram'}
             </button>
           </div>
         </Dialog.Panel>
