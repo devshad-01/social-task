@@ -1,13 +1,11 @@
 import { Mongo } from 'meteor/mongo';
 import SimpleSchema from 'simpl-schema';
-import 'meteor/aldeed:collection2/dynamic';
-import { Collection2 } from 'meteor/aldeed:collection2';
 
 // Create the Notifications collection
 export const Notifications = new Mongo.Collection('notifications');
 
 // Define the schema for Notifications
-Notifications.schema = new SimpleSchema({
+const NotificationSchema = new SimpleSchema({
   userId: {
     type: String,
     // User who will receive the notification
@@ -94,11 +92,8 @@ Notifications.schema = new SimpleSchema({
   }
 });
 
-// Attach the schema to the collection
-Collection2.load(Notifications, Notifications.schema);
-
 // Export the schema for use in methods
-export const NotificationSchema = Notifications.schema;
+export { NotificationSchema };
 
 // Helper functions for notifications
 export const NotificationHelpers = {
