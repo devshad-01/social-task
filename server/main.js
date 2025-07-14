@@ -19,6 +19,8 @@ import '../imports/api/clients/FacebookPosts.js';
 import '../imports/api/clients/InstagramPosts.js'; 
 import '../imports/api/clientsaccounts/server/publications';
 import '../imports/api/meta/methods.js';
+import '../imports/api/meta/FetchAccounts.js';
+import '../imports/api/meta/instagram.js';
 
 
 
