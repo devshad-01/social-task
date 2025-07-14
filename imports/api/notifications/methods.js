@@ -2,6 +2,8 @@ import { Meteor } from 'meteor/meteor';
 import { check, Match } from 'meteor/check';
 import { Roles } from 'meteor/alanning:roles';
 import { Notifications, NotificationHelpers } from './NotificationsCollection';
+import './PushSubscriptionsCollection';
+import './server/sendPushNotification';
 
 Meteor.methods({
   /**
@@ -164,11 +166,12 @@ Meteor.methods({
     const assignerName = assignerUser?.profile?.fullName || 'Someone';
 
     // Send notification to each assignee
-    const notificationPromises = assigneeIds.map(assigneeId => {
+    const notificationPromises = assigneeIds.map(async assigneeId => {
       // Don't notify the person who assigned the task
       if (assigneeId === this.userId) return null;
 
-      return Meteor.callAsync('notifications.create', {
+      // Create the notification in DB
+      const notificationId = await Meteor.callAsync('notifications.create', {
         userId: assigneeId,
         type: 'task_assigned',
         priority: 'high',
@@ -179,9 +182,25 @@ Meteor.methods({
           taskTitle: taskTitle
         }
       });
+
+      // Send push notification for background delivery
+      try {
+        console.log('[SERVER] tasks.insert] Sending push notification to assignee:', assigneeId, 'for task:', taskId);
+        await Meteor.callAsync('pushNotifications.send', assigneeId, {
+          title: 'New Task Assigned',
+          body: `${assignerName} assigned you a task: ${taskTitle}`,
+          tag: `task_assigned_${taskId}`,
+          type: 'task_assigned',
+          taskId,
+          url: `/tasks/${taskId}`
+        });
+        console.log('[SERVER] tasks.insert] Push notification sent to:', assigneeId);
+      } catch (err) {
+        console.error('[SERVER] tasks.insert] Failed to send task assignment notifications:', err);
+      }
     });
 
-    // Wait for all notifications to be created
+    // Wait for all notifications to be created and push sent
     await Promise.all(notificationPromises.filter(Boolean));
     return true;
   },

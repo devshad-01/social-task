@@ -26,20 +26,27 @@ export const ProfilePage = () => {
       const granted = await WebPushService.requestPermission();
       setNotificationPermission(granted ? 'granted' : 'denied');
       if (granted) {
-        // Send a test notification
-        await WebPushService.sendNotification({
-          title: 'Notifications Enabled!',
-          message: 'You will now receive push notifications for task updates.',
-          actionUrl: '/notifications'
-        });
+        // Ensure push subscription is created and sent to server
+        await WebPushService.ensurePushSubscription('BHLrfMTYHnuj2GXwZLYS5bchaMlLRbNAcrhQzlTHLRymTTJtaEtQim6ZTuSTmSUfhIEWWYimjtSX3em7RBoQRD0');
+        // Do NOT send a direct notification here; rely on server push for real events
       }
     } catch (error) {
       console.error('Error enabling notifications:', error);
     }
   };
 
+  const handleDisableNotifications = async () => {
+    try {
+      await WebPushService.unsubscribeUserFromPush();
+      setNotificationPermission(Notification.permission);
+    } catch (error) {
+      console.error('Error disabling notifications:', error);
+    }
+  };
+
   const handleTestNotification = async () => {
     try {
+      // Only for testing: send a local notification via service worker
       await WebPushService.sendNotification({
         title: 'Test Notification',
         message: 'This is a test notification to check if everything is working correctly!',
@@ -50,6 +57,13 @@ export const ProfilePage = () => {
       alert('Failed to send test notification. Please make sure notifications are enabled.');
     }
   };
+
+  // On mount or login, always ensure subscription is up to date
+  React.useEffect(() => {
+    if (notificationPermission === 'granted') {
+      WebPushService.ensurePushSubscription('BHLrfMTYHnuj2GXwZLYS5bchaMlLRbNAcrhQzlTHLRymTTJtaEtQim6ZTuSTmSUfhIEWWYimjtSX3em7RBoQRD0');
+    }
+  }, [notificationPermission, user?._id]);
 
   // Show loading spinner while checking auth
   if (isLoading) {
