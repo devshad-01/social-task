@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from './components/layout/AppLayout';
 import { DashboardPage } from './pages/DashboardPage';
 import { TasksPage } from './pages/TasksPage';
+import { TaskDetailsPage } from './pages/TaskDetailsPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { ClientsPage } from './pages/ClientsPage';
@@ -14,6 +15,7 @@ import { useTokenRoutes } from './hooks/useTokenRoutes';
 import { PostsPage } from './pages/PostsPage';
 import { AddPosts } from './pages/AddPosts';
 import { PWAInstallPrompt } from './components/common/PWAInstallPrompt';
+import { AddTaskPage } from './pages/AddTaskPage';
 
 // PWA Test (only in development)
 
@@ -100,13 +102,16 @@ export const App = () => {
         }>
           <Route index element={<DashboardPage />} />
           <Route path="tasks" element={<TasksPage />} />
+          <Route path="tasks/:id" element={<TaskDetailsPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="notifications/:id" element={<NotificationsPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="clients" element={<ClientsPage />} />
           <Route path="team" element={<TeamPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="posts" element={<PostsPage />} />
           <Route path="add-post" element={<AddPosts />} />
+          <Route path="add-task" element={<AddTaskPage />} />
       
         </Route>
         

@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useContext } from 'react';
 import { useTracker } from 'meteor/react-meteor-data';
+import { useNavigate } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/alanning:roles';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/common/Card';
@@ -9,12 +10,15 @@ import { EmptyState } from '../components/common/EmptyState';
 import { TaskCard } from '../components/tasks/TaskCard';
 import { TaskModal } from '../components/tasks/TaskModal';
 import { useTasks } from '../hooks/useTasks';
+import { NavigationContext } from '../context/NavigationContext';
 import { Icons } from '../components/Icons';
 
 export const DashboardPage = ({ activeTab }) => {
   const [selectedTask, setSelectedTask] = useState(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const navigate = useNavigate();
+  const { canCreateTasks, unreadCount } = useContext(NavigationContext);
 
   const { user } = useTracker(() => ({
     user: Meteor.user()
@@ -137,12 +141,26 @@ export const DashboardPage = ({ activeTab }) => {
           </p>
         </div>
         <div className="flex items-center space-x-3">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate('/notifications')}
+            className="relative"
+          >
+            {React.createElement(Icons.bell, { className: "h-4 w-4 mr-2" })}
+            Notifications
+            {unreadCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-5 h-5 flex items-center justify-center">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </Button>
           <Button variant="outline" size="sm">
             {React.createElement(Icons.download, { className: "h-4 w-4 mr-2" })}
             Export
           </Button>
-          {isAdmin && (
-            <Button variant="primary" size="sm" onClick={() => setIsCreateModalOpen(true)}>
+          {canCreateTasks && (
+            <Button variant="primary" size="sm" onClick={() => navigate('/add-task')}>
               {React.createElement(Icons.plus, { className: "h-4 w-4 mr-2" })}
               New Task
             </Button>
@@ -329,15 +347,6 @@ export const DashboardPage = ({ activeTab }) => {
       )}
 
       {/* Create Task Modal */}
-      {isAdmin && (
-        <TaskModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          onSave={handleCreateTask}
-          mode="create"
-        />
-      )}
-
       {/* Task Details Modal */}
       <TaskModal
         isOpen={isTaskModalOpen}

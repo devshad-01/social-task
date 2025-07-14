@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/alanning:roles';
@@ -11,14 +12,17 @@ import { TaskCard } from '../components/tasks/TaskCard';
 import { TaskModal } from '../components/tasks/TaskModal';
 import { TaskFilters } from '../components/tasks/TaskFilters';
 import { useTasks } from '../hooks/useTasks';
+import { NavigationContext } from '../context/NavigationContext';
 import { Icons } from '../components/Icons';
 
 export const TasksPage = () => {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const navigate = useNavigate();
   const [selectedTask, setSelectedTask] = useState(null);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState({});
+
+  const { canCreateTasks } = useContext(NavigationContext);
 
   const { user } = useTracker(() => ({
     user: Meteor.user()
@@ -70,15 +74,6 @@ export const TasksPage = () => {
     setSelectedTask(task);
   };
 
-  const handleCreateTask = async (taskData) => {
-    try {
-      await createTask(taskData);
-      setIsCreateModalOpen(false);
-    } catch (err) {
-      console.error('Error creating task:', err);
-    }
-  };
-
   const handleUpdateTask = async (taskData) => {
     try {
       await updateTask(selectedTask._id, taskData);
@@ -97,8 +92,8 @@ export const TasksPage = () => {
   };
 
   const handleDeleteTask = async (taskId) => {
-    if (!isAdmin) {
-      alert('Only admins and supervisors can delete tasks');
+    if (!canCreateTasks) {
+      alert('Only admins and managers can delete tasks');
       return;
     }
     
@@ -140,11 +135,11 @@ export const TasksPage = () => {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
             <p className="text-gray-600">
-              {isAdmin ? 'Manage all tasks and assignments' : 'View your assigned tasks'}
+              {canCreateTasks ? 'Manage all tasks and assignments' : 'View your assigned tasks'}
             </p>
           </div>
-          {isAdmin && (
-            <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
+          {canCreateTasks && (
+            <Button onClick={() => navigate('/add-task')} className="flex items-center gap-2">
               {React.createElement(Icons.plus, { className: "h-4 w-4" })}
               New Task
             </Button>
@@ -153,7 +148,7 @@ export const TasksPage = () => {
       </div>
 
       {/* Advanced Filters for Admins */}
-      {isAdmin && (
+      {canCreateTasks && (
         <div className="mb-6">
           <TaskFilters
             onFiltersChange={handleFiltersChange}
@@ -237,7 +232,7 @@ export const TasksPage = () => {
         </div>
         
         {isAdmin && (
-          <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
+          <Button onClick={() => navigate('/add-task')} className="flex items-center gap-2">
             {React.createElement(Icons.plus, { className: "h-4 w-4" })}
             New Task
           </Button>
@@ -260,26 +255,15 @@ export const TasksPage = () => {
       ) : (
         <EmptyState
           illustration={React.createElement(Icons.clipboard, { className: "mx-auto h-12 w-12 text-gray-400" })}
-          title="No tasks found"
-          description={searchTerm ? 'Try adjusting your search terms' : isAdmin ? 'Create your first task to get started' : 'No tasks have been assigned to you yet'}
-          action={
-            isAdmin && (
-              <Button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2">
-                {React.createElement(Icons.plus, { className: "h-4 w-4" })}
-                Create Task
-              </Button>
-            )
-          }
-        />
-      )}
-
-      {/* Create Task Modal */}
-      {isAdmin && (
-        <TaskModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          onSave={handleCreateTask}
-          mode="create"
+          title="No tasks found"            description={searchTerm ? 'Try adjusting your search terms' : isAdmin ? 'Create your first task to get started' : 'No tasks have been assigned to you yet'}
+            action={
+              isAdmin && (
+                <Button onClick={() => navigate('/add-task')} className="flex items-center gap-2">
+                  {React.createElement(Icons.plus, { className: "h-4 w-4" })}
+                  Create Task
+                </Button>
+              )
+            }
         />
       )}
 
@@ -291,7 +275,7 @@ export const TasksPage = () => {
           onSave={handleUpdateTask}
           onDelete={() => handleDeleteTask(selectedTask._id)}
           task={selectedTask}
-          mode={isAdmin || selectedTask.assigneeIds.includes(user?._id) ? "edit" : "view"}
+          mode={isAdmin ? "edit" : "view"}
           canDelete={isAdmin}
         />
       )}

@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useTracker } from 'meteor/react-meteor-data';
+import { Meteor } from 'meteor/meteor';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/common/Card';
 import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
@@ -6,115 +9,48 @@ import { Avatar } from '../components/common/Avatar';
 import { Input } from '../components/common/Input';
 import { EmptyState } from '../components/common/EmptyState';
 import { NotificationCard } from '../components/notifications/NotificationCard';
+import { NavigationContext } from '../context/NavigationContext';
+import { Notifications as NotificationsCollection } from '../../api/notifications/NotificationsCollection';
 import { Icons } from '../components/Icons';
 
 export const NotificationsPage = () => {
+  const { id: highlightId } = useParams();
+  const navigate = useNavigate();
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedNotification, setSelectedNotification] = useState(null);
+  const { markNotificationAsRead, markAllNotificationsAsRead } = useContext(NavigationContext);
 
-  // Mock data
-  const notifications = [
-    {
-      id: 1,
-      type: 'task_assigned',
-      title: 'New task assigned',
-      message: 'You have been assigned to "Create Instagram post for summer sale"',
-      timestamp: '2024-01-12T14:30:00Z',
-      read: false,
-      priority: 'high',
-      relatedUser: {
-        name: 'Sarah Johnson',
-        avatar: '/images/avatar1.jpg'
-      },
-      actionUrl: '/tasks/1'
-    },
-    {
-      id: 2,
-      type: 'comment',
-      title: 'New comment on task',
-      message: 'Mike Chen commented on "Facebook ad campaign setup"',
-      timestamp: '2024-01-12T13:15:00Z',
-      read: false,
-      priority: 'medium',
-      relatedUser: {
-        name: 'Mike Chen',
-        avatar: '/images/avatar2.jpg'
-      },
-      actionUrl: '/tasks/2'
-    },
-    {
-      id: 3,
-      type: 'task_completed',
-      title: 'Task completed',
-      message: 'Emily Davis completed "Weekly analytics report"',
-      timestamp: '2024-01-12T12:00:00Z',
-      read: true,
-      priority: 'low',
-      relatedUser: {
-        name: 'Emily Davis',
-        avatar: '/images/avatar3.jpg'
-      },
-      actionUrl: '/tasks/3'
-    },
-    {
-      id: 4,
-      type: 'deadline_approaching',
-      title: 'Deadline approaching',
-      message: 'Task "LinkedIn content calendar" is due tomorrow',
-      timestamp: '2024-01-12T11:45:00Z',
-      read: false,
-      priority: 'high',
-      actionUrl: '/tasks/4'
-    },
-    {
-      id: 5,
-      type: 'client_message',
-      title: 'Client message',
-      message: 'New message from Fashion Brand Co. regarding upcoming campaign',
-      timestamp: '2024-01-12T10:30:00Z',
-      read: true,
-      priority: 'medium',
-      relatedUser: {
-        name: 'Fashion Brand Co.',
-        avatar: '/images/client1.jpg'
-      },
-      actionUrl: '/clients/1'
-    },
-    {
-      id: 6,
-      type: 'system',
-      title: 'System update',
-      message: 'New features have been added to the platform',
-      timestamp: '2024-01-12T09:00:00Z',
-      read: true,
-      priority: 'low',
-      actionUrl: '/updates'
-    },
-    {
-      id: 7,
-      type: 'mention',
-      title: 'You were mentioned',
-      message: 'David Wilson mentioned you in a comment',
-      timestamp: '2024-01-12T08:15:00Z',
-      read: false,
-      priority: 'medium',
-      relatedUser: {
-        name: 'David Wilson',
-        avatar: '/images/avatar4.jpg'
-      },
-      actionUrl: '/tasks/4'
-    },
-    {
-      id: 8,
-      type: 'approval_required',
-      title: 'Approval required',
-      message: 'TikTok viral challenge content needs your approval',
-      timestamp: '2024-01-12T07:30:00Z',
-      read: false,
-      priority: 'high',
-      actionUrl: '/tasks/5'
-    }
-  ];
+  // Track notifications with Meteor's reactive data
+  const { notifications, unreadCount, loading } = useTracker(() => {
+    const handle = Meteor.subscribe('notifications.user');
+    const notifications = NotificationsCollection.find({}, { 
+      sort: { createdAt: -1 } 
+    }).fetch();
+    const unreadCount = NotificationsCollection.find({ read: false }).count();
+    
+    return {
+      notifications,
+      unreadCount,
+      loading: !handle.ready()
+    };
+  }, []);
+
+  // If loading, show loading state
+  if (loading) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-20 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const filteredNotifications = notifications.filter(notification => {
     const matchesFilter = filter === 'all' || 
@@ -128,15 +64,37 @@ export const NotificationsPage = () => {
     return matchesFilter && matchesSearch;
   });
 
-  const handleNotificationClick = (notification) => {
-    // Mark as read and navigate
-    console.log('Navigating to:', notification.actionUrl);
-    // In a real app, this would make an API call to mark as read
+  const handleNotificationClick = async (notification) => {
+    try {
+      // Mark as read if not already read
+      if (!notification.read) {
+        await markNotificationAsRead(notification._id);
+      }
+      
+      // Check if notification is task-related and has a taskId
+      if (notification.type && notification.type.startsWith('task_') && notification.data?.taskId) {
+        // Redirect to task details page
+        navigate(`/tasks/${notification.data.taskId}`);
+      } else if (notification.actionUrl) {
+        // If actionUrl is present, redirect to it
+        window.open(notification.actionUrl, '_self');
+      } else {
+        // Otherwise, highlight/show the notification detail
+        setSelectedNotification(notification);
+        navigate(`/notifications/${notification._id}`);
+      }
+    } catch (error) {
+      console.error('Error handling notification click:', error);
+    }
   };
 
-  const handleMarkAllAsRead = () => {
-    console.log('Marking all notifications as read');
-    // In a real app, this would make an API call
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllNotificationsAsRead();
+      console.log('All notifications marked as read');
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
   };
 
   const getNotificationStats = () => {
@@ -242,9 +200,10 @@ export const NotificationsPage = () => {
         <div className="space-y-4">
           {filteredNotifications.map((notification) => (
             <NotificationCard
-              key={notification.id}
+              key={notification._id}
               notification={notification}
               onClick={() => handleNotificationClick(notification)}
+              highlight={highlightId === notification._id}
             />
           ))}
         </div>
@@ -262,7 +221,14 @@ export const NotificationsPage = () => {
           }
         />
       )}
+      {/* Optional: Render detail view if selectedNotification and no actionUrl */}
+      {selectedNotification && !selectedNotification.actionUrl && (
+        <div className="mt-8 p-6 bg-white rounded-xl shadow-lg border border-gray-200">
+          <h2 className="text-xl font-bold mb-2">{selectedNotification.title}</h2>
+          <p className="mb-2 text-gray-700">{selectedNotification.message}</p>
+          <div className="text-sm text-gray-500">{new Date(selectedNotification.createdAt).toLocaleString()}</div>
+        </div>
+      )}
     </div>
   );
 };
-

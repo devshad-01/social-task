@@ -1,19 +1,41 @@
 import React, { useState, useContext } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Icons } from '../Icons';
 import { NavigationContext } from '../../context/NavigationContext';
-import { NotificationBell } from './NotificationBell';
+import { NotificationBell } from '../notifications/NotificationBell';
 import { UserMenu } from './UserMenu';
 
 export const DesktopNavbar = () => {
-  const { navigationItems, activeTab, setActiveTab, unreadCount, user, notifications } = useContext(NavigationContext);
+  const { 
+    navigationItems, 
+    activeTab, 
+    setActiveTab, 
+    unreadCount, 
+    user, 
+    notifications,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    canCreateTasks
+  } = useContext(NavigationContext);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const navigate = useNavigate();
 
   // Filter navigation items for desktop navbar
   const mainNavItems = navigationItems.filter(item => 
     ['dashboard', 'tasks', 'clients', 'team', 'analytics','posts'].includes(item.id)
   );
+
+  const handleNotificationClick = (notification) => {
+    if (notification.actionUrl) {
+      navigate(notification.actionUrl);
+    } else {
+      navigate('/notifications');
+    }
+    if (notification.id) {
+      markNotificationAsRead(notification.id);
+    }
+  };
 
   return (
     <nav className="desktop-navbar">
@@ -53,6 +75,29 @@ export const DesktopNavbar = () => {
               );
             })}
           </div>
+
+          {/* Quick Actions - Only show for admin/managers */}
+          {canCreateTasks && (
+            <div className="desktop-quick-actions">
+              <h3 className="desktop-quick-actions-title">Quick Actions</h3>
+              <div className="desktop-quick-actions-grid">
+                <button
+                  onClick={() => navigate('/add-task')}
+                  className="desktop-quick-action-btn"
+                >
+                  <Icons.tasks className="desktop-quick-action-icon" />
+                  <span>Add Task</span>
+                </button>
+                <button
+                  onClick={() => navigate('/add-post')}
+                  className="desktop-quick-action-btn"
+                >
+                  <Icons.post className="desktop-quick-action-icon" />
+                  <span>Add Post</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Bottom section with user info */}
@@ -71,22 +116,24 @@ export const DesktopNavbar = () => {
             </div>
           </div>
 
-          {/* User Menu */}
+          {/* Notifications */}
+          <div className="desktop-notification-container">
+            <NotificationBell 
+              notifications={notifications}
+              onMarkAllAsRead={markAllNotificationsAsRead}
+              onNotificationClick={handleNotificationClick}
+            />
+          </div>
+
+          {/* User Menu - Simplified */}
           <div className="user-menu-container">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="user-menu-button"
+              className="user-menu-button-simple"
             >
-              <div className="user-avatar">
-                {user.avatar ? (
-                  <img src={user.avatar} alt={user.name} className="avatar-image" />
-                ) : (
-                  <span className="text-sm font-medium">{user.name.split(' ').map(n => n[0]).join('')}</span>
-                )}
-              </div>
-              <div className="user-info">
-                <div className="user-name">{user.name}</div>
-                <div className="user-role">{user.role.replace('-', ' ')}</div>
+              <div className="user-info-compact">
+                <div className="user-name">{user?.name || 'User'}</div>
+                <div className="user-role">{user?.role?.replace('-', ' ') || 'User'}</div>
               </div>
               <Icons.chevronDown className="menu-arrow-icon" />
             </button>
