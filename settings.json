@@ -62,6 +62,9 @@
     "instagramPosting": {
       "instagramBusinessAccountId": "17841435615021333",
       "longLivedUserAccessToken": "EAAKR94OPZC0wBPIOkFzsFO6NeK0tyXBBiA4kxZBx2qcSOOY6lck7QJF6OaaZBSpZBIx2XWFlcacpf2USuoZAniIPJpj7YYDzSVc2L26AGPR2lZBZBC01cS3hDZCL1gEomSwUMimKsffneWI3SWn6p8YHH2ytYGQCkfY3MOAwGWQ9n1z86MIq5WSawXR4hEeX3mbrF07EeaPdoGSCFNbZBL2jHHM54hFcZAk9uFyytb"
+    },
+      "metaApi": {
+      "userAccessToken": "EAAKR94OPZC0wBPBVHwXuA5hZBp99uUDFKZCi7CsA3cAqK1V9YLomfQs0nWtQwtOzWeZB48ZApki8uo59ZBFSznU0taaXkLoGNjZBghH97ykaYY1MAu2mDpkZB06NQpqQZAqvhjTfO2jsCSwjLuZAtXB5V5LnkIolswOVwJrElXEZANWzfHjSOxOeyiOrFZBp9vjDWkFp4y0bqYDUZAZBYCXSs2ZBQHf7CiIWcXjEDOdBaBmIuoh"
     }
   },
   "packages": {

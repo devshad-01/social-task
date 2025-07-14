@@ -10,6 +10,14 @@ import { SkeletonPostItem } from "../components/common/SkeletonPostItem";
 import { PostsCollection } from "/imports/api/posts/PostsCollections.js";
 import { ClientsCollection } from "/imports/api/clients/ClientsCollection.js";
 
+// ✅ Modal import
+import ClientsModal from "../components/clients/ClientModal";
+import { useToast, ToastContainer } from '../components/common/Toast';
+
+
+
+
+
 // Filter by status dropdown component
 const FilterDropdown = ({ value, onChange }) => (
   <select
@@ -40,11 +48,16 @@ const ClientDropdown = ({ clients, selectedClient, onChange }) => (
   </select>
 );
 
-export const PostsPage = ({ handleShare }) => {
+export const PostsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  // Default filter changed to 'unshared' so that only unshared posts show initially
   const [filter, setFilter] = useState("unshared");
   const [selectedClient, setSelectedClient] = useState("all");
+   const toast = useToast();
+
+
+  // ✅ Share modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [activePost, setActivePost] = useState(null);
 
   // Subscribe and fetch posts
   const posts = useTracker(() => {
@@ -70,6 +83,21 @@ export const PostsPage = ({ handleShare }) => {
       selectedClient === "all" || post.clientId === selectedClient;
     return matchesSearch && matchesFilter && matchesClient;
   });
+
+  // ✅ Called by PostItem Share button
+  const handleShare = (post) => {
+    setActivePost(post);
+    setModalOpen(true);
+  };
+
+  // ✅ Called when account selected from modal
+  const handleAccountSelected = (account) => {
+    console.log("Ready to post this:", activePost);
+    console.log("To this account:", account);
+
+    // Post to Meta API here (to be implemented next)
+    setModalOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 font-inter">
@@ -119,6 +147,29 @@ export const PostsPage = ({ handleShare }) => {
           </div>
         )}
       </div>
+
+      {/* ✅ Clients Modal (shared globally) */}
+    <ClientsModal
+  isOpen={modalOpen}
+  onClose={() => setModalOpen(false)}
+  post={activePost}
+/>
+
+ <>
+      <div className="min-h-screen bg-gray-50 font-inter">
+        {/* ...all your page JSX... */}
+        <ClientsModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          post={activePost}
+          toast={toast}
+        />
+      </div>
+
+      {/* Render toasts globally */}
+      <ToastContainer toasts={toast.toasts} onRemoveToast={toast.removeToast} />
+    </>
+
     </div>
   );
 };

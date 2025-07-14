@@ -17,9 +17,13 @@ import '../imports/api/clients/server/publications';
 import '../imports/startup/server/index.js';
 import '../imports/api/clients/FacebookPosts.js';
 import '../imports/api/clients/InstagramPosts.js'; 
+import '../imports/api/clientsaccounts/server/publications';
+import '../imports/api/meta/methods.js';
+
 
 
 Meteor.startup(async () => {
+  
   // Configure accounts settings
   Accounts.config({
     sendVerificationEmail: true,
