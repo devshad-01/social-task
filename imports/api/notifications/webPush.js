@@ -141,7 +141,126 @@ export const WebPushService = {
         taskId: taskId 
       }
     });
-  }
+  },
+
+  /**
+   * Subscribe the user to push notifications and send subscription to server
+   */
+  async subscribeUserToPush(publicVapidKey) {
+    if (!('serviceWorker' in navigator)) {
+      console.warn('Service workers are not supported in this browser.');
+      return null;
+    }
+    if (!('PushManager' in window)) {
+      console.warn('Push messaging is not supported.');
+      return null;
+    }
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      // Subscribe the user
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: this.urlBase64ToUint8Array(publicVapidKey)
+      });
+      // Send subscription to server
+      Meteor.call('pushSubscriptions.add', subscription, (err) => {
+        if (err) {
+          console.error('Failed to save push subscription:', err);
+        } else {
+          console.log('Push subscription saved to server.');
+        }
+      });
+      return subscription;
+    } catch (error) {
+      console.error('Failed to subscribe user to push:', error);
+      return null;
+    }
+  },
+
+  /**
+   * Subscribe the user to push notifications and send subscription to server
+   * If already subscribed, will not duplicate. Returns the subscription or null on failure.
+   */
+  async ensurePushSubscription(publicVapidKey) {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      console.warn('Push messaging is not supported.');
+      return null;
+    }
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      // Check if already subscribed
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: this.urlBase64ToUint8Array(publicVapidKey)
+        });
+        console.log('[CLIENT] New push subscription created:', subscription);
+      } else {
+        console.log('[CLIENT] Existing push subscription found:', subscription);
+      }
+      // Send subscription to server (always as plain object)
+      const plainSub = subscription && subscription.toJSON ? subscription.toJSON() : subscription;
+      console.log('[CLIENT] Sending push subscription to server:', plainSub);
+      Meteor.call('pushSubscriptions.add', plainSub, (err, res) => {
+        if (err) {
+          console.error('[CLIENT] Failed to save push subscription:', err);
+        } else {
+          console.log('%c[CLIENT] Push subscription saved to server successfully!','color:green;font-weight:bold');
+        }
+      });
+      return subscription;
+    } catch (error) {
+      console.error('[CLIENT] Failed to ensure push subscription:', error);
+      return null;
+    }
+  },
+
+  /**
+   * Unsubscribe the user from push notifications and remove subscription from server
+   */
+  async unsubscribeUserFromPush() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      console.warn('Push messaging is not supported.');
+      return false;
+    }
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      const subscription = await registration.pushManager.getSubscription();
+      if (subscription) {
+        const endpoint = subscription.endpoint;
+        await subscription.unsubscribe();
+        Meteor.call('pushSubscriptions.remove', endpoint, (err) => {
+          if (err) {
+            console.error('[CLIENT] Failed to remove push subscription:', err);
+          } else {
+            console.log('%c[CLIENT] Push subscription removed from server successfully!','color:orange;font-weight:bold');
+          }
+        });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('[CLIENT] Failed to unsubscribe from push:', error);
+      return false;
+    }
+  },
+
+  /**
+   * Utility to convert VAPID key
+   */
+  urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  },
 };
 
 // Auto-request permission when the service is loaded
