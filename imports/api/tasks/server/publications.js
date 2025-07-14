@@ -3,6 +3,12 @@ import { check } from 'meteor/check';
 import { Roles } from 'meteor/alanning:roles';
 import { Tasks } from '../TasksCollection';
 
+// Helper function to safely check user roles
+const isUserInRole = (userId, roles) => {
+  return Roles && typeof Roles.userIsInRole === 'function' && 
+         Roles.userIsInRole(userId, roles);
+};
+
 // Publication for all tasks (admin/supervisor only)
 Meteor.publish('tasks.all', function() {
   // Check if user is logged in
@@ -11,7 +17,7 @@ Meteor.publish('tasks.all', function() {
   }
 
   // Only admins and supervisors can see all tasks
-  if (!Roles.userIsInRole(this.userId, ['admin', 'supervisor'])) {
+  if (!isUserInRole(this.userId, ['admin', 'supervisor'])) {
     return this.ready();
   }
 
@@ -48,7 +54,7 @@ Meteor.publish('tasks.byClient', function(clientId) {
   let query = { clientId: clientId };
   
   // If not admin/supervisor, only show tasks assigned to them
-  if (!Roles.userIsInRole(this.userId, ['admin', 'supervisor'])) {
+  if (!isUserInRole(this.userId, ['admin', 'supervisor'])) {
     query.assigneeIds = this.userId;
   }
 
@@ -70,7 +76,7 @@ Meteor.publish('tasks.byStatus', function(status) {
   let query = { status: status };
   
   // If not admin/supervisor, only show tasks assigned to them
-  if (!Roles.userIsInRole(this.userId, ['admin', 'supervisor'])) {
+  if (!isUserInRole(this.userId, ['admin', 'supervisor'])) {
     query.assigneeIds = this.userId;
   }
 
@@ -93,7 +99,7 @@ Meteor.publish('tasks.overdue', function() {
   };
   
   // If not admin/supervisor, only show tasks assigned to them
-  if (!Roles.userIsInRole(this.userId, ['admin', 'supervisor'])) {
+  if (!isUserInRole(this.userId, ['admin', 'supervisor'])) {
     query.assigneeIds = this.userId;
   }
 
@@ -124,7 +130,7 @@ Meteor.publish('tasks.today', function() {
   };
   
   // If not admin/supervisor, only show tasks assigned to them
-  if (!Roles.userIsInRole(this.userId, ['admin', 'supervisor'])) {
+  if (!isUserInRole(this.userId, ['admin', 'supervisor'])) {
     query.assigneeIds = this.userId;
   }
 
@@ -145,7 +151,7 @@ Meteor.publish('tasks.stats', function() {
 });
 
 // Publication for single task
-Meteor.publish('tasks.single', function(taskId) {
+Meteor.publish('tasks.single', async function(taskId) {
   check(taskId, String);
 
   // Check if user is logged in
@@ -153,14 +159,40 @@ Meteor.publish('tasks.single', function(taskId) {
     return this.ready();
   }
 
-  // Get the task
-  const task = Tasks.findOne(taskId);
+  // Get the task using async method
+  const task = await Tasks.findOneAsync(taskId);
   if (!task) {
     return this.ready();
   }
 
-  // Check if user can view the task
-  const canView = Roles.userIsInRole(this.userId, ['admin', 'supervisor']) || 
+  // Check if user can view the task (with defensive check for Roles)
+  const canView = isUserInRole(this.userId, ['admin', 'supervisor']) || 
+                 task.assigneeIds.includes(this.userId);
+
+  if (!canView) {
+    return this.ready();
+  }
+
+  return Tasks.find(taskId);
+});
+
+// Alias for tasks.single for consistency
+Meteor.publish('tasks.byId', async function(taskId) {
+  check(taskId, String);
+
+  // Check if user is logged in
+  if (!this.userId) {
+    return this.ready();
+  }
+
+  // Get the task using async method
+  const task = await Tasks.findOneAsync(taskId);
+  if (!task) {
+    return this.ready();
+  }
+
+  // Check if user can view the task (with defensive check for Roles)
+  const canView = isUserInRole(this.userId, ['admin', 'supervisor']) || 
                  task.assigneeIds.includes(this.userId);
 
   if (!canView) {
