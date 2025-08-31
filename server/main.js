@@ -1,6 +1,7 @@
 import { Meteor } from 'meteor/meteor';
 import { Accounts } from 'meteor/accounts-base';
 import { Roles } from 'meteor/alanning:roles';
+import { Email } from 'meteor/email';
 
 // Import API files
 import '../imports/api/users/methods';
@@ -25,7 +26,24 @@ import '../imports/api/meta/instagram.js';
 
 
 Meteor.startup(async () => {
-  
+  // Configure email error handling first
+  const originalEmailSend = Email.send;
+  Email.send = function(options) {
+    try {
+      // Check if we're in development and skip actual email sending
+      if (Meteor.isDevelopment) {
+        console.log('📧 Development mode: Email would be sent to:', options.to);
+        console.log('📧 Subject:', options.subject);
+        return; // Skip actual sending in development
+      }
+      return originalEmailSend.call(this, options);
+    } catch (error) {
+      console.error('❌ Email sending failed:', error.message);
+      // Don't throw the error, just log it
+      return;
+    }
+  };
+
   // Configure accounts settings
   Accounts.config({
     sendVerificationEmail: true,
