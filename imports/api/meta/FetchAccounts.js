@@ -7,7 +7,8 @@ export const fetchAndStoreMetaAccounts = async () => {
   const accessToken = Meteor.settings?.private?.metaApi?.userAccessToken;
 
   if (!accessToken) {
-    throw new Error("❌ User access token missing in settings.json");
+    console.warn("⚠️ Meta API user access token not configured in settings.json - skipping Meta accounts fetch");
+    return;
   }
 
   console.log("🔄 Fetching Facebook Pages using fetch API...");
