@@ -54,6 +54,11 @@
             "cloud_name": "dtwtcdkrl",
             "api_key": "975887372581848",
             "api_secret": "iU9oeTRMdPx3yCSy3Dp4zol0ul0"
+        },
+        "metaApi": {
+            "userAccessToken": "",
+            "appId": "",
+            "appSecret": ""
         }
     },
     "packages": {
