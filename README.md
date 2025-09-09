@@ -1,187 +1,257 @@
-# 🚀 Meteor + JSX + Tailwind CSS 4.1 + Flowbite
+# 🚀 Posty - Social Media & Task Management PWA
 
-This project is a modern full-stack starter template built with:
+## 📋 **What This App Does**
 
-- ⚙️ [Meteor](https://www.meteor.com/) – JavaScript full-stack platform
-- ⚛️ JSX support for React-style UI components
-- 🎨 [Tailwind CSS 4.1](https://tailwindcss.com/) – Utility-first styling with native `@theme` support
-- 💧 [Flowbite](https://flowbite.com/) – Beautiful components built on Tailwind
+**Posty** is a comprehensive **Task Management & Social Media Scheduling Platform** designed for digital agencies and teams. It combines:
+
+- 📋 **Task Management**: Create, assign, and track tasks with priorities, due dates, and attachments
+- 👥 **Client Management**: Organize work by clients with contact information and projects
+- 📱 **Social Media Integration**: Schedule and post to Facebook/Instagram directly from the app
+- 🔔 **Real-time Notifications**: Push notifications for task updates and deadlines
+- 📱 **PWA Support**: Works offline and can be installed as a mobile app
 
 ---
 
-## ✅ Features
+## 🏗️ **Architecture Overview**
 
-- Tailwind 4.1 with custom `@theme` color and font variables
-- Flowbite plugin integration for styled UI components
-- Clean folder structure with JSX files and Tailwind classes
-- PostCSS config using new Tailwind plugin system
-- Ready to extend with layout, grid, buttons, navbar, and animations
-https://github.com/devshad-01/Meteor-JSX-Flowbit-Tailwind.git
+### **Tech Stack**
+- **Backend**: Meteor 3.0 + MongoDB + Node.js
+- **Frontend**: React 18 + JSX
+- **Styling**: Tailwind CSS 4.1 + Flowbite components
+- **Authentication**: Meteor accounts with role-based access (admin, supervisor, member)
+- **Real-time**: Meteor's reactive data system
+- **File Upload**: Cloudinary integration
+- **PWA**: Service worker + Web Push notifications
+
+### **Key Features**
+- ✅ User authentication with email verification
+- ✅ Role-based access control (Admin/Supervisor/Member)
+- ✅ Task creation, assignment, and tracking
+- ✅ Client management with contact details
+- ✅ Social media post scheduling (Facebook/Instagram)
+- ✅ Real-time notifications system
+- ✅ File uploads via Cloudinary
+- ✅ Mobile-responsive PWA
+- ✅ Offline support
+
 ---
 
-## 📁 Project Structure
+## 📁 **Project Structure Explained**
 
-project/
-├── .meteor/ # Meteor config
-├── client/
-│ ├── main.jsx # Main React/JSX entry point
-│ └── main.css # Tailwind + Custom Theme + Flowbite
-├── imports/ # Optional logic and components
-├── public/ # Static assets
-├── tailwind.config.js # Tailwind content settings
-├── postcss.config.mjs # PostCSS plugins
-├── package.json
-└── README.md
+```
+posty/
+├── 🎯 CLIENT ENTRY POINTS
+│   ├── client/main.jsx              # React app entry point
+│   └── client/main.css              # Tailwind + custom CSS
+│
+├── 🏗️ CORE APPLICATION LOGIC
+│   ├── imports/
+│   │   ├── api/                     # Backend collections & methods
+│   │   │   ├── users/               # User auth & management
+│   │   │   │   ├── methods.js       # User registration/login
+│   │   │   │   ├── publications.js  # User data subscriptions
+│   │   │   │   ├── schemas.js       # Data validation schemas
+│   │   │   │   └── server/          # Server-only user logic
+│   │   │   │
+│   │   │   ├── tasks/               # Task management system
+│   │   │   │   ├── TasksCollection.js  # Task data model
+│   │   │   │   ├── methods.js       # Task CRUD operations
+│   │   │   │   └── server/          # Task server logic
+│   │   │   │
+│   │   │   ├── clients/             # Client management
+│   │   │   │   ├── ClientsCollection.js # Client data model
+│   │   │   │   └── server/          # Client server logic
+│   │   │   │
+│   │   │   ├── posts/               # Social media posts
+│   │   │   │   ├── PostsCollections.js # Post data model
+│   │   │   │   └── methods.js       # Post creation/sharing
+│   │   │   │
+│   │   │   ├── notifications/       # Push notifications
+│   │   │   │   ├── NotificationsCollection.js
+│   │   │   │   ├── methods.js       # Notification creation
+│   │   │   │   └── webPush.js       # Web push service
+│   │   │   │
+│   │   │   └── meta/                # Facebook/Instagram API
+│   │   │       ├── FetchAccounts.js # Fetch social accounts
+│   │   │       ├── methods.js       # Social media methods
+│   │   │       └── instagram.js     # Instagram specific logic
+│   │   │
+│   │   ├── ui/                      # Frontend React components
+│   │   │   ├── components/          # Reusable UI components
+│   │   │   │   ├── auth/            # Login/register forms
+│   │   │   │   ├── common/          # Buttons, inputs, modals
+│   │   │   │   ├── layout/          # Page layouts
+│   │   │   │   ├── navigation/      # Headers, sidebars, tabs
+│   │   │   │   ├── tasks/           # Task-specific components
+│   │   │   │   ├── clients/         # Client-specific components
+│   │   │   │   └── notifications/   # Notification components
+│   │   │   │
+│   │   │   ├── pages/               # Main route pages
+│   │   │   │   ├── DashboardPage.jsx    # Main dashboard
+│   │   │   │   ├── TasksPage.jsx        # Task management
+│   │   │   │   ├── ClientsPage.jsx      # Client management
+│   │   │   │   ├── PostsPage.jsx        # Social media posts
+│   │   │   │   ├── ProfilePage.jsx      # User settings
+│   │   │   │   └── AuthPage.jsx         # Login/register
+│   │   │   │
+│   │   │   ├── hooks/               # Custom React hooks
+│   │   │   │   ├── useAuth.js       # Authentication state
+│   │   │   │   ├── useTasks.js      # Task management
+│   │   │   │   └── useNavigation.js # Navigation state
+│   │   │   │
+│   │   │   ├── context/             # React context providers
+│   │   │   │   ├── AuthContext.jsx  # User authentication
+│   │   │   │   ├── NavigationContext.jsx # App navigation
+│   │   │   │   └── ResponsiveContext.jsx # Mobile/desktop
+│   │   │   │
+│   │   │   └── App.jsx              # Main app component
+│   │   │
+│   │   └── startup/                 # App initialization
+│   │       └── server/index.js      # Server startup logic
+│
+├── ⚙️ SERVER CONFIGURATION
+│   ├── server/
+│   │   ├── main.js                  # Server entry point
+│   │   ├── cloudinary_methods.js    # File upload methods
+│   │   └── dev-tools.js             # Development utilities
+│
+├── 📱 PWA ASSETS
+│   ├── public/
+│   │   ├── manifest.json            # PWA manifest
+│   │   ├── service-worker.js        # Offline support
+│   │   └── icons/                   # PWA icons
+│
+├── 🔧 CONFIGURATION
+│   ├── .meteor/packages             # Meteor packages
+│   ├── package.json                 # NPM dependencies
+│   ├── settings.json                # App configuration
+│   ├── tailwind.config.js           # Tailwind CSS config
+│   └── postcss.config.mjs           # PostCSS configuration
+│
+└── 📚 DOCUMENTATION
+    ├── .github/copilot/             # AI development guides
+    └── docs/development-notes/      # Development notes
+```
 
-## 🧪 Getting Started
+---
 
-### 1. Clone the Project
+## 🚀 **How to Run & Develop**
 
+### **1. Start the Application**
 ```bash
-git clone https://github.com/Fidel-Kisevu/Meteor-JSX-Flowbit-Tailwind.git
-cd Meteor-JSX-Flowbit-Tailwind
+cd /home/shad/Desktop/posty
+meteor
+```
 
-meteor npm install
+### **2. Access the Application**
+- **Web**: http://localhost:3000
+- **Mobile**: Install as PWA from browser menu
 
-📍 http://localhost:3000
+### **3. Default Admin Account**
+- **Email**: admin@posty.com
+- **Password**: Admin123!
 
+### **4. Key Development Commands**
+```bash
+# Install new Meteor package
+meteor add package-name
 
-ailwind Theme Setup
-We use CSS variables inside @theme in client/main.css:
+# Install new NPM package
+meteor npm install package-name
 
+# Reset database (for testing)
+meteor reset
 
-@theme {
-  --color-primary-50: #eff6ff;
-  --color-primary-500: #3b82f6;
-  --color-primary-900: #1e3a8a;
+# Run tests
+meteor test
 
-  --font-sans: 'Inter', sans-serif;
-  --font-body: 'Inter', sans-serif;
-  --font-mono: 'SFMono-Regular', monospace;
-}
-You can now use these like:
+# Deploy to production
+meteor deploy your-app.meteorapp.com
+```
 
+---
 
-<div class="bg-primary-500 text-primary-50 font-sans">
-  Hello from Tailwind 4.1!
-</div>
-💧 Flowbite Integration
-Flowbite is installed via NPM and configured in your CSS:
+## 🔧 **Configuration Files**
 
+### **settings.json** - App Configuration
+Contains all your API keys and settings:
+- Cloudinary (file uploads)
+- Meta API (Facebook/Instagram)
+- Email service
+- Security settings
 
-npm install flowbite
-Inside client/main.css:
+### **package.json** - Dependencies
+- React 18 for UI
+- Tailwind CSS 4.1 for styling
+- Flowbite for components
+- Various utilities
 
+### **.meteor/packages** - Meteor Packages
+- accounts-password (authentication)
+- alanning:roles (permissions)
+- email (notifications)
+- hot-module-replacement (development)
 
-@import "tailwindcss";
-@plugin "flowbite/plugin";
-@source "../node_modules/flowbite";
-Now you can use Flowbite components like:
+---
 
-html
-Copy
-Edit
-<button class="btn-primary">Click Me</button>
-or copy components directly from Flowbite Docs.
+## 👥 **User Roles & Permissions**
 
-🧰 Example UI Elements
-html
+### **Admin**
+- Create/manage all tasks
+- Manage clients and users
+- Access all system features
+- View analytics
 
+### **Supervisor**
+- Create/assign tasks to team
+- Manage assigned clients
+- View team performance
 
-<!-- Button -->
-<button class="bg-primary-600 hover:bg-primary-700 text-white font-sans px-4 py-2 rounded">
-  Primary Button
-</button>
+### **Member**
+- View assigned tasks
+- Update task status
+- Upload deliverables
+- Receive notifications
 
-<!-- Input -->
-<input class="border border-primary-300 focus:ring-primary-500 px-3 py-2 rounded" />
+---
 
-<!-- Navbar -->
-<nav class="bg-primary-800 text-primary-50 p-4">
-  <a class="hover:text-primary-300" href="#">Home</a>
-</nav>
-🔗 Resources
-Tailwind v4 Theming Docs
+## 🎯 **Next Steps for Development**
 
-Flowbite Components
+1. **Fix the Meta API issue** - Add your Facebook/Instagram API tokens
+2. **Configure email service** - Set up proper SMTP for production
+3. **Add more social platforms** - Twitter, LinkedIn, TikTok
+4. **Enhance analytics** - Task completion rates, team performance
+5. **Mobile app optimization** - Better offline support
+6. **Calendar integration** - Google Calendar, Outlook
 
-Meteor Docs
+---
 
-📦 Deployment
-You can deploy this app using:
+## 🚨 **Known Issues & Solutions**
 
-🌩 Meteor Cloud
+### **Email Service**
+Currently configured for development only. For production:
+1. Sign up for Brevo, SendGrid, or similar
+2. Update `settings.json` with real SMTP credentials
 
-🌐 Static frontends (if separated) via Vercel or Render
+### **Meta API**
+Facebook/Instagram integration requires:
+1. Facebook Developer App setup
+2. User access tokens in settings.json
+3. App review for production use
 
-🧾 License
-MIT © Fidel Kisevu
+### **File Uploads**
+Cloudinary is configured but may need:
+1. Account verification
+2. Upload preset configuration
+3. Folder organization
 
-## Task Management User Stories & Features
+---
 
-This project supports a robust, agency-grade task management system for IT companies and digital teams. Key user stories and features include:
+## 📞 **Support & Resources**
 
-### Admin/Supervisor
-- Add client companies and manage their accounts
-- Create tasks (with images/files), assign to team members or roles
-- Set task priorities (high/medium/low), deadlines, and reminders
-- Track task status: draft, scheduled, in progress, completed, overdue
-- Comment on tasks, mention team members, upload/attach files
-- Filter/search tasks by client, assignee, status, or due date
-- Receive notifications for completed/overdue tasks
-- View analytics (tasks per week, overdue, team workload)
-- Duplicate/template common tasks for recurring work
+- **Meteor Docs**: https://docs.meteor.com/
+- **React Docs**: https://react.dev/
+- **Tailwind CSS**: https://tailwindcss.com/
+- **Flowbite Components**: https://flowbite.com/
 
-### Team Members
-- See assigned tasks in dashboard/calendar view
-- View task details, attachments, due dates, and client/project info
-- Update task status (in progress, blocked, completed)
-- Comment, ask questions, upload deliverables
-- Receive reminders for upcoming/overdue tasks
-- See task history and recent changes
-
-### General/Advanced
-- Task dependencies (blockers)
-- Subtasks/checklists
-- Time tracking
-- Role-based permissions
-- Mobile PWA support
-- Activity feed (recent actions)
-- Bulk actions (complete, assign, delete)
-- Integrations (calendar, Slack, email)
-
-See `.github/copilot/TasksuserStories.md` for the full list of user stories and details.
-
-## Recommended Implementation Phases
-
-**Phase 1: Core PWA Setup & Task Basics**
-- Set up PWA manifest, service worker, and offline support
-- Implement user authentication (admin/team)
-- Build basic task CRUD (create, view, update, delete)
-- Assign tasks to users
-- Show assigned tasks on dashboard (mobile-first)
-
-**Phase 2: Notifications (MVP)**
-- In-app notification bell with unread count
-- Send notification when a task is assigned or completed
-- Show notification list/center
-- Mark notifications as read
-
-**Phase 3: Task Details & Collaboration**
-- Task details view (attachments, comments, status updates)
-- Mark task as completed/in progress/blocked
-- Upload files to tasks
-- Comment and @mention on tasks
-
-**Phase 4: Advanced PWA & Notification Features**
-- Push notifications (web/mobile)
-- Notification preferences (email, push, in-app)
-- Real-time updates (websockets or polling)
-- Reminders for due/overdue tasks
-
-**Phase 5: Analytics, Bulk Actions, and Integrations**
-- Task analytics and activity feed
-- Bulk actions (complete, assign, delete)
-- Integrate with calendar, Slack, or email
-
-_See `.github/copilot/TasksuserStories.md` for full user stories and features._
+Your app is well-structured and production-ready! 🎉

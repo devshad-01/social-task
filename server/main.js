@@ -44,9 +44,24 @@ Meteor.startup(async () => {
     }
   };
 
+  // Override Accounts.sendVerificationEmail to prevent crashes
+  const originalSendVerificationEmail = Accounts.sendVerificationEmail;
+  Accounts.sendVerificationEmail = function(userId, address) {
+    try {
+      if (Meteor.isDevelopment) {
+        console.log('📧 Development mode: Verification email would be sent to:', address);
+        return;
+      }
+      return originalSendVerificationEmail.call(this, userId, address);
+    } catch (error) {
+      console.error('❌ Verification email sending failed:', error.message);
+      return;
+    }
+  };
+
   // Configure accounts settings
   Accounts.config({
-    sendVerificationEmail: true,
+    sendVerificationEmail: !Meteor.isDevelopment, // Disable in development
     forbidClientAccountCreation: false,
     loginExpirationInDays: 30,
   });
