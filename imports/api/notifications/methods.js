@@ -1,254 +1,351 @@
 import { Meteor } from 'meteor/meteor';
 import { check, Match } from 'meteor/check';
 import { Roles } from 'meteor/alanning:roles';
-import { Notifications, NotificationHelpers } from './NotificationsCollection';
+import { NotificationQueueService, NOTIFICATION_PRIORITY } from './notificationQueue.js';
 
-Meteor.methods({
-  /**
-   * Create a new notification
-   */
-  async 'notifications.create'(notificationData) {
-    check(notificationData, {
-      userId: String,
-      type: String,
-      title: Match.Optional(String),
-      message: Match.Optional(String),
-      priority: Match.Optional(String),
-      actionUrl: Match.Optional(String),
-      relatedId: Match.Optional(String),
-      relatedType: Match.Optional(String),
-      metadata: Match.Optional(Object),
-      data: Match.Optional(Object)
-    });
+/**
+ * Enhanced Notification Methods with Professional Queuing
+ */
 
-    // Generate title and message if not provided
-    if (!notificationData.title) {
-      notificationData.title = NotificationHelpers.generateTitle(
-        notificationData.type, 
-        notificationData.metadata
-      );
-    }
-
-    if (!notificationData.message) {
-      notificationData.message = NotificationHelpers.formatMessage(
-        notificationData.type, 
-        notificationData.metadata
-      );
-    }
-
-    // Generate action URL if not provided
-    if (!notificationData.actionUrl && notificationData.relatedId && notificationData.relatedType) {
-      notificationData.actionUrl = NotificationHelpers.generateActionUrl(
-        notificationData.type,
-        notificationData.relatedId,
-        notificationData.relatedType
-      );
-    }
-
-    // Include taskId in data field for task-related notifications
-    if (!notificationData.data && notificationData.relatedType === 'task' && notificationData.relatedId) {
-      notificationData.data = {
-        taskId: notificationData.relatedId
-      };
-    }
-
-    const newNotificationId = await Notifications.insertAsync({
-      ...notificationData,
-      createdAt: new Date(),
-      read: false
-    });
-
-    // Send push notification if this is a high-priority notification
-    if (notificationData.priority === 'high' || ['task_assigned', 'task_completed'].includes(notificationData.type)) {
-      try {
-        await Meteor.callAsync('webPush.sendNotification', {
-          title: notificationData.title,
-          message: notificationData.message,
-          actionUrl: notificationData.actionUrl,
-          data: notificationData.data || {},
-          userIds: [notificationData.userId]
-        });
-        console.log(`✅ Push notification sent for ${notificationData.type}`);
-      } catch (error) {
-        console.error(`❌ Failed to send push notification for ${notificationData.type}:`, error);
-        // Don't fail the notification creation if push fails
+if (Meteor.isServer) {
+  Meteor.methods({
+    
+    /**
+     * Send notification to specific user with professional queuing
+     */
+    async 'notifications.sendToUser'({
+      userId,
+      title,
+      message,
+      actionUrl = '/dashboard',
+      data = {},
+      priority = NOTIFICATION_PRIORITY.NORMAL,
+      scheduleAt = new Date(),
+      expiresAt = null,
+      groupKey = null,
+      replace = false
+    }) {
+      check(userId, String);
+      check(title, String);
+      check(message, String);
+      check(actionUrl, String);
+      check(priority, Match.Integer);
+      
+      // Ensure user is authorized (can only send to self unless admin)
+      if (this.userId !== userId && !Roles.userIsInRole(this.userId, ['admin', 'supervisor'])) {
+        throw new Meteor.Error('unauthorized', 'Cannot send notification to other users');
       }
-    }
-
-    return newNotificationId;
-  },
-
-  /**
-   * Mark notification as read
-   */
-  async 'notifications.markAsRead'(notificationId) {
-    check(notificationId, String);
-
-    if (!this.userId) {
-      throw new Meteor.Error('not-authorized', 'You must be logged in');
-    }
-
-    const notification = await Notifications.findOneAsync(notificationId);
-    if (!notification) {
-      throw new Meteor.Error('notification-not-found', 'Notification not found');
-    }
-
-    // Users can only mark their own notifications as read
-    if (notification.userId !== this.userId) {
-      throw new Meteor.Error('not-authorized', 'You can only mark your own notifications as read');
-    }
-
-    await Notifications.updateAsync(notificationId, {
-      $set: {
-        read: true,
-        updatedAt: new Date()
+      
+      return await NotificationQueueService.enqueue({
+        userId,
+        title,
+        message,
+        actionUrl,
+        data,
+        priority,
+        scheduleAt,
+        expiresAt,
+        groupKey,
+        replace,
+        metadata: {
+          sentBy: this.userId,
+          method: 'notifications.sendToUser'
+        }
+      });
+    },
+    
+    /**
+     * Send notification to multiple users
+     */
+    async 'notifications.sendToUsers'({
+      userIds,
+      title,
+      message,
+      actionUrl = '/dashboard',
+      data = {},
+      priority = NOTIFICATION_PRIORITY.NORMAL,
+      scheduleAt = new Date(),
+      expiresAt = null,
+      groupKey = null,
+      replace = false
+    }) {
+      check(userIds, [String]);
+      check(title, String);
+      check(message, String);
+      
+      // Ensure user is authorized to send bulk notifications
+      if (!Roles.userIsInRole(this.userId, ['admin', 'supervisor'])) {
+        throw new Meteor.Error('unauthorized', 'Only admins and supervisors can send bulk notifications');
       }
-    });
-
-    return true;
-  },
-
-  /**
-   * Mark all notifications as read for the current user
-   */
-  async 'notifications.markAllAsRead'() {
-    if (!this.userId) {
-      throw new Meteor.Error('not-authorized', 'You must be logged in');
-    }
-
-    await Notifications.updateAsync(
-      { 
+      
+      const notificationIds = [];
+      
+      for (const userId of userIds) {
+        try {
+          const notificationId = await NotificationQueueService.enqueue({
+            userId,
+            title,
+            message,
+            actionUrl,
+            data,
+            priority,
+            scheduleAt,
+            expiresAt,
+            groupKey,
+            replace,
+            metadata: {
+              sentBy: this.userId,
+              method: 'notifications.sendToUsers',
+              bulkSend: true
+            }
+          });
+          notificationIds.push(notificationId);
+        } catch (error) {
+          console.error(`Failed to queue notification for user ${userId}:`, error);
+        }
+      }
+      
+      return notificationIds;
+    },
+    
+    /**
+     * Enhanced task assignment notification with queuing
+     */
+    async 'notifications.taskAssigned'({
+      taskId,
+      taskTitle,
+      assignedBy,
+      assigneeIds,
+      dueDate = null,
+      priority = NOTIFICATION_PRIORITY.HIGH
+    }) {
+      console.log('[DEBUG] notifications.taskAssigned called with:', {
+        taskId,
+        taskTitle,
+        assignedBy,
+        assigneeIds,
+        dueDate,
+        priority
+      });
+      
+      check(taskId, String);
+      check(taskTitle, String);
+      check(assignedBy, String);
+      check(assigneeIds, [String]);
+      
+      // Ensure user is authorized (using safe Roles check)
+      if (Roles && typeof Roles.userIsInRole === 'function' && this.userId) {
+        if (!Roles.userIsInRole(this.userId, ['admin', 'supervisor'])) {
+          throw new Meteor.Error('unauthorized', 'Only admins and supervisors can assign tasks');
+        }
+      }
+      
+      const assignerUser = await Meteor.users.findOneAsync(assignedBy);
+      const assignerName = assignerUser?.profile?.name || 'Someone';
+      const dueDateText = dueDate ? ` Due: ${new Date(dueDate).toLocaleDateString()}` : '';
+      
+      const notificationIds = [];
+      
+      for (const assigneeId of assigneeIds) {
+        try {
+          const notificationId = await NotificationQueueService.enqueue({
+            userId: assigneeId,
+            title: '📋 New Task Assigned',
+            message: `${assignerName} assigned you "${taskTitle}".${dueDateText}`,
+            actionUrl: `/tasks/${taskId}`,
+            data: {
+              type: 'task_assigned',
+              taskId,
+              assignedBy,
+              dueDate
+            },
+            priority,
+            groupKey: `task_assigned_${taskId}`, // Group similar notifications
+            replace: true, // Replace any existing assignment notifications for this task
+            metadata: {
+              sentBy: this.userId,
+              method: 'notifications.taskAssigned',
+              taskId
+            }
+          });
+          notificationIds.push(notificationId);
+        } catch (error) {
+          console.error(`Failed to queue task assignment notification for ${assigneeId}:`, error);
+        }
+      }
+      
+      return notificationIds;
+    },
+    
+    /**
+     * Enhanced task completion notification with queuing
+     */
+    async 'notifications.taskCompleted'({
+      taskId,
+      taskTitle,
+      completedBy,
+      adminIds,
+      priority = NOTIFICATION_PRIORITY.NORMAL
+    }) {
+      check(taskId, String);
+      check(taskTitle, String);
+      check(completedBy, String);
+      check(adminIds, [String]);
+      
+      const completerUser = await Meteor.users.findOneAsync(completedBy);
+      const completerName = completerUser?.profile?.name || 'Someone';
+      
+      const notificationIds = [];
+      
+      for (const adminId of adminIds) {
+        try {
+          const notificationId = await NotificationQueueService.enqueue({
+            userId: adminId,
+            title: '✅ Task Completed',
+            message: `${completerName} completed "${taskTitle}".`,
+            actionUrl: `/tasks/${taskId}`,
+            data: {
+              type: 'task_completed',
+              taskId,
+              completedBy
+            },
+            priority,
+            groupKey: `task_completed_${taskId}`,
+            replace: true,
+            metadata: {
+              sentBy: this.userId,
+              method: 'notifications.taskCompleted',
+              taskId
+            }
+          });
+          notificationIds.push(notificationId);
+        } catch (error) {
+          console.error(`Failed to queue task completion notification for ${adminId}:`, error);
+        }
+      }
+      
+      return notificationIds;
+    },
+    
+    /**
+     * Schedule task due date reminder
+     */
+    async 'notifications.scheduleTaskReminder'({
+      taskId,
+      taskTitle,
+      assigneeIds,
+      dueDate,
+      reminderTime = 24 * 60 * 60 * 1000 // 24 hours before due
+    }) {
+      check(taskId, String);
+      check(taskTitle, String);
+      check(assigneeIds, [String]);
+      check(dueDate, Date);
+      
+      const scheduleAt = new Date(dueDate.getTime() - reminderTime);
+      
+      // Don't schedule if due date is in the past
+      if (scheduleAt <= new Date()) {
+        return [];
+      }
+      
+      const notificationIds = [];
+      
+      for (const assigneeId of assigneeIds) {
+        try {
+          const notificationId = await NotificationQueueService.enqueue({
+            userId: assigneeId,
+            title: '⏰ Task Due Soon',
+            message: `"${taskTitle}" is due soon. Due: ${dueDate.toLocaleDateString()}`,
+            actionUrl: `/tasks/${taskId}`,
+            data: {
+              type: 'task_due_reminder',
+              taskId,
+              dueDate: dueDate.toISOString()
+            },
+            priority: NOTIFICATION_PRIORITY.HIGH,
+            scheduleAt,
+            expiresAt: dueDate, // Expire at due date
+            groupKey: `task_reminder_${taskId}`,
+            replace: true,
+            metadata: {
+              sentBy: this.userId,
+              method: 'notifications.scheduleTaskReminder',
+              taskId
+            }
+          });
+          notificationIds.push(notificationId);
+        } catch (error) {
+          console.error(`Failed to schedule task reminder for ${assigneeId}:`, error);
+        }
+      }
+      
+      return notificationIds;
+    },
+    
+    /**
+     * Cancel notifications by group key
+     */
+    async 'notifications.cancelByGroup'({ userId, groupKey }) {
+      check(userId, String);
+      check(groupKey, String);
+      
+      // Users can cancel their own notifications, admins can cancel any
+      if (this.userId !== userId && !Roles.userIsInRole(this.userId, ['admin'])) {
+        throw new Meteor.Error('unauthorized', 'Cannot cancel other user notifications');
+      }
+      
+      return await NotificationQueueService.removeByGroupKey(userId, groupKey);
+    },
+    
+    /**
+     * Get notification queue statistics (admin only)
+     */
+    async 'notifications.getQueueStats'() {
+      if (!Roles.userIsInRole(this.userId, ['admin'])) {
+        throw new Meteor.Error('unauthorized', 'Only admins can view queue statistics');
+      }
+      
+      return NotificationQueueService.getStats();
+    },
+    
+    /**
+     * Manually trigger queue processing (admin only)
+     */
+    async 'notifications.processQueue'() {
+      if (!Roles.userIsInRole(this.userId, ['admin'])) {
+        throw new Meteor.Error('unauthorized', 'Only admins can trigger queue processing');
+      }
+      
+      NotificationQueueService.triggerProcessing();
+      return { success: true };
+    },
+    
+    /**
+     * Test notification with immediate processing
+     */
+    async 'notifications.sendTest'({
+      title = 'Test Notification',
+      message = 'This is a test notification to verify your setup is working correctly!',
+      actionUrl = '/dashboard'
+    }) {
+      check(title, String);
+      check(message, String);
+      check(actionUrl, String);
+      
+      return await NotificationQueueService.enqueue({
         userId: this.userId,
-        read: false
-      },
-      {
-        $set: {
-          read: true,
-          updatedAt: new Date()
-        }
-      },
-      { multi: true }
-    );
-
-    return true;
-  },
-
-  /**
-   * Delete a notification
-   */
-  async 'notifications.delete'(notificationId) {
-    check(notificationId, String);
-
-    if (!this.userId) {
-      throw new Meteor.Error('not-authorized', 'You must be logged in');
-    }
-
-    const notification = await Notifications.findOneAsync(notificationId);
-    if (!notification) {
-      throw new Meteor.Error('notification-not-found', 'Notification not found');
-    }
-
-    // Users can only delete their own notifications
-    if (notification.userId !== this.userId) {
-      throw new Meteor.Error('not-authorized', 'You can only delete your own notifications');
-    }
-
-    await Notifications.removeAsync(notificationId);
-    return true;
-  },
-
-  /**
-   * Send notification when task is assigned
-   */
-  async 'notifications.taskAssigned'(taskId, assigneeIds, taskTitle) {
-    check(taskId, String);
-    check(assigneeIds, [String]);
-    check(taskTitle, String);
-
-    if (!this.userId) {
-      throw new Meteor.Error('not-authorized', 'You must be logged in');
-    }
-
-    // Only admins and supervisors can trigger task assignment notifications
-    // TODO: Re-enable role checks once Roles package is working
-    // if (!Roles.userIsInRole(this.userId, ['admin', 'supervisor'])) {
-    //   throw new Meteor.Error('not-authorized', 'Only admins and supervisors can assign tasks');
-    // }
-
-    const assignerUser = await Meteor.users.findOneAsync(this.userId);
-    const assignerName = assignerUser?.profile?.fullName || 'Someone';
-
-    // Send notification to each assignee
-    const notificationPromises = assigneeIds.map(assigneeId => {
-      // Don't notify the person who assigned the task
-      if (assigneeId === this.userId) return null;
-
-      return Meteor.callAsync('notifications.create', {
-        userId: assigneeId,
-        type: 'task_assigned',
-        priority: 'high',
-        relatedId: taskId,
-        relatedType: 'task',
+        title,
+        message,
+        actionUrl,
+        priority: NOTIFICATION_PRIORITY.HIGH,
+        scheduleAt: new Date(), // Send immediately
         metadata: {
-          userName: assignerName,
-          taskTitle: taskTitle
-        }
-      });
-    });
-
-    // Wait for all notifications to be created
-    await Promise.all(notificationPromises.filter(Boolean));
-    return true;
-  },
-
-  /**
-   * Send notification when task is completed
-   */
-  async 'notifications.taskCompleted'(taskId, taskTitle, taskCreatedBy, assigneeIds = []) {
-    check(taskId, String);
-    check(taskTitle, String);
-    check(taskCreatedBy, String);
-    check(assigneeIds, [String]);
-
-    if (!this.userId) {
-      throw new Meteor.Error('not-authorized', 'You must be logged in');
-    }
-
-    const completedByUser = await Meteor.users.findOneAsync(this.userId);
-    const completedByName = completedByUser?.profile?.fullName || 'Someone';
-
-    // Notify task creator if different from completer
-    if (taskCreatedBy !== this.userId) {
-      await Meteor.callAsync('notifications.create', {
-        userId: taskCreatedBy,
-        type: 'task_completed',
-        priority: 'medium',
-        relatedId: taskId,
-        relatedType: 'task',
-        metadata: {
-          userName: completedByName,
-          taskTitle: taskTitle
+          sentBy: this.userId,
+          method: 'notifications.sendTest',
+          isTest: true
         }
       });
     }
-
-    // Notify other assignees (but not the one who completed it)
-    const otherAssignees = assigneeIds.filter(id => id !== this.userId);
-    const notificationPromises = otherAssignees.map(assigneeId => {
-      return Meteor.callAsync('notifications.create', {
-        userId: assigneeId,
-        type: 'task_completed',
-        priority: 'medium',
-        relatedId: taskId,
-        relatedType: 'task',
-        metadata: {
-          userName: completedByName,
-          taskTitle: taskTitle
-        }
-      });
-    });
-
-    await Promise.all(notificationPromises);
-    return true;
-  }
-});
+  });
+}

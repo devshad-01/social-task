@@ -35,13 +35,14 @@ Meteor.methods({
       }
 
       // Check if user has permission to create tasks (admin/supervisor only)
-      // TODO: Re-enable role checks once Roles package is working
-      // if (!Roles.userIsInRole(this.userId, ['admin', 'supervisor'])) {
-      //   console.error('[SERVER] tasks.insert] User does not have permission:', this.userId);
-      //   throw new Meteor.Error('not-authorized', 'Only admins and supervisors can create tasks');
-      // }
+      if (Roles && typeof Roles.userIsInRole === 'function' && this.userId) {
+        if (!Roles.userIsInRole(this.userId, ['admin', 'supervisor'])) {
+          console.error('[SERVER] tasks.insert] User does not have permission:', this.userId);
+          throw new Meteor.Error('not-authorized', 'Only admins and supervisors can create tasks');
+        }
+      }
 
-      console.log('[SERVER] tasks.insert] User has permission (role check disabled), proceeding...');
+      console.log('[SERVER] tasks.insert] User has permission, proceeding...');
 
       // Validate assignee IDs exist
       if (taskData.assigneeIds && taskData.assigneeIds.length > 0) {
@@ -84,8 +85,17 @@ Meteor.methods({
       // Send notifications to assignees if task is assigned
       if (taskData.assigneeIds && taskData.assigneeIds.length > 0) {
         console.log('[SERVER] tasks.insert] Sending notifications to assignees:', taskData.assigneeIds);
+        console.log('[SERVER] tasks.insert] Debug - taskId:', taskId);
+        console.log('[SERVER] tasks.insert] Debug - taskData.title:', taskData.title);
+        console.log('[SERVER] tasks.insert] Debug - this.userId:', this.userId);
+        console.log('[SERVER] tasks.insert] Debug - assigneeIds:', taskData.assigneeIds);
         try {
-          await Meteor.callAsync('notifications.taskAssigned', taskId, taskData.assigneeIds, taskData.title);
+          await Meteor.callAsync('notifications.taskAssigned', {
+            taskId,
+            taskTitle: taskData.title,
+            assignedBy: this.userId,
+            assigneeIds: taskData.assigneeIds
+          });
           console.log('[SERVER] tasks.insert] Notifications sent successfully');
         } catch (error) {
           console.error('[SERVER] tasks.insert] Failed to send task assignment notifications:', error);
@@ -168,7 +178,12 @@ Meteor.methods({
       
       if (newAssignees.length > 0) {
         try {
-          await Meteor.callAsync('notifications.taskAssigned', taskId, newAssignees, task.title);
+          await Meteor.callAsync('notifications.taskAssigned', {
+            taskId,
+            taskTitle: task.title,
+            assignedBy: this.userId,
+            assigneeIds: newAssignees
+          });
         } catch (error) {
           console.error('Failed to send task assignment notifications:', error);
         }
@@ -284,7 +299,12 @@ Meteor.methods({
     // Send notifications to newly assigned users
     if (userIds.length > 0) {
       try {
-        await Meteor.callAsync('notifications.taskAssigned', taskId, userIds, task.title);
+        await Meteor.callAsync('notifications.taskAssigned', {
+          taskId,
+          taskTitle: task.title,
+          assignedBy: this.userId,
+          assigneeIds: userIds
+        });
       } catch (error) {
         console.error('Failed to send task assignment notifications:', error);
       }
@@ -315,9 +335,9 @@ Meteor.methods({
     }
 
     // Check permissions
-    // TODO: Re-enable role checks once Roles package is working
-    // const isAdmin = Roles.userIsInRole(this.userId, ['admin', 'supervisor']);
-    const isAdmin = true; // Temporarily allow all users to update status
+    const isAdmin = (Roles && typeof Roles.userIsInRole === 'function' && this.userId) 
+      ? Roles.userIsInRole(this.userId, ['admin', 'supervisor'])
+      : false;
     const isAssigned = task.assigneeIds && task.assigneeIds.includes(this.userId);
     
     if (!isAdmin && !isAssigned) {
@@ -344,7 +364,12 @@ Meteor.methods({
         }).fetchAsync();
         const adminIds = adminUsers.map(user => user._id);
         
-        await Meteor.callAsync('notifications.taskCompleted', taskId, task.title, task.createdBy, adminIds);
+        await Meteor.callAsync('notifications.taskCompleted', {
+          taskId,
+          taskTitle: task.title,
+          completedBy: this.userId,
+          adminIds
+        });
         console.log('[SERVER] tasks.updateStatus] Task completion notification sent');
       } catch (error) {
         console.error('[SERVER] tasks.updateStatus] Failed to send completion notification:', error);

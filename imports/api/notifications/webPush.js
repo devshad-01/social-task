@@ -191,7 +191,7 @@ export const WebPushService = {
   },
 
   /**
-   * Send notification for task assignment
+   * Send notification for task assignment (only push notifications)
    */
   async notifyTaskAssignment(taskTitle, assignedBy, taskId, assigneeIds) {
     const title = 'New Task Assigned';
@@ -202,15 +202,14 @@ export const WebPushService = {
       taskId: taskId 
     };
 
-    // Send both immediate notification (if app is open) and push notification (for when closed)
-    await this.sendImmediateNotification({ title, message, actionUrl, data });
+    // Only send push notification via server (works when app is closed)
     await this.sendPushNotification({ title, message, actionUrl, data, userIds: assigneeIds });
     
     return true;
   },
 
   /**
-   * Send notification when task is completed
+   * Send notification when task is completed (only push notifications)
    */
   async notifyTaskCompleted(taskTitle, completedBy, taskId, adminIds) {
     const title = 'Task Completed';
@@ -221,8 +220,7 @@ export const WebPushService = {
       taskId: taskId 
     };
 
-    // Send both immediate and push notifications
-    await this.sendImmediateNotification({ title, message, actionUrl, data });
+    // Only send push notification via server
     await this.sendPushNotification({ title, message, actionUrl, data, userIds: adminIds });
     
     return true;

@@ -140,7 +140,12 @@ export const AddTaskPage = () => {
         console.log('[AddTaskPage] Sending notifications to assignees:', formData.assigneeIds);
         try {
           await new Promise((resolve, reject) => {
-            Meteor.call('notifications.taskAssigned', result, formData.assigneeIds, formData.title, (error) => {
+            Meteor.call('notifications.taskAssigned', {
+              taskId: result,
+              taskTitle: formData.title,
+              assignedBy: Meteor.userId(),
+              assigneeIds: formData.assigneeIds
+            }, (error) => {
               if (error) {
                 console.error('[AddTaskPage] Notification error:', error);
                 // Don't fail the whole operation for notification errors

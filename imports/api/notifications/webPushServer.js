@@ -75,8 +75,8 @@ Meteor.methods({
     }
 
     try {
-      const user = Meteor.users.findOne(this.userId);
-      const subscription = PushSubscriptions.findOne({ userId: this.userId });
+      const user = await Meteor.users.findOneAsync(this.userId);
+      const subscription = await PushSubscriptions.findOneAsync({ userId: this.userId });
       
       if (!subscription) {
         throw new Meteor.Error('no-subscription', 'No push subscription found. Please enable notifications first.');
@@ -192,6 +192,52 @@ Meteor.methods({
     }
   }
 });
+
+/**
+ * Send push notification to a specific user (for queue processing)
+ */
+export const sendPushNotificationToUser = async ({ userId, title, message, actionUrl, data = {} }) => {
+  try {
+    // Get user's push subscription
+    const subscription = await PushSubscriptions.findOneAsync({ userId, isActive: true });
+    
+    if (!subscription) {
+      return { success: false, error: 'No active push subscription found for user' };
+    }
+
+    const payload = JSON.stringify({
+      title,
+      body: message,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      actionUrl,
+      data: {
+        ...data,
+        timestamp: Date.now(),
+        userId
+      }
+    });
+
+    await webpush.sendNotification({
+      endpoint: subscription.endpoint,
+      keys: subscription.keys
+    }, payload);
+
+    return { success: true };
+  } catch (error) {
+    console.error(`Failed to send push notification to user ${userId}:`, error);
+    
+    // If subscription is invalid, mark as inactive
+    if (error.statusCode === 410 || error.statusCode === 404) {
+      await PushSubscriptions.updateAsync(
+        { userId },
+        { $set: { isActive: false } }
+      );
+    }
+    
+    return { success: false, error: error.message };
+  }
+};
 
 // Server-side publications
 Meteor.publish('pushSubscriptions.own', function() {

@@ -12,6 +12,7 @@ import '../imports/api/posts/server/publications';
 import '../imports/api/tasks/methods';
 import '../imports/api/tasks/server';
 import '../imports/api/notifications/methods';
+import '../imports/api/notifications/notificationQueue';
 import '../imports/api/notifications/server/publications';
 import '../imports/api/notifications/webPushServer';
 import './cloudinary_methods.js';
