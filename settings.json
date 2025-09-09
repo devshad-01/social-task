@@ -21,6 +21,9 @@
             "lockoutDuration": 900000,
             "sessionTimeout": 604800000,
             "passwordResetTimeout": 86400000
+        },
+        "vapid": {
+            "publicKey": "BGgXgu5RxmFIBCzFH3dREzXiqqDZNKG_W5YHSAKD84qRXuntxoP8lOmhElTfCf_xb3kGjFsqElHLe4Xhb1t1DaI"
         }
     },
     "private": {
@@ -59,6 +62,10 @@
             "userAccessToken": "",
             "appId": "",
             "appSecret": ""
+        },
+        "vapid": {
+            "publicKey": "BGgXgu5RxmFIBCzFH3dREzXiqqDZNKG_W5YHSAKD84qRXuntxoP8lOmhElTfCf_xb3kGjFsqElHLe4Xhb1t1DaI",
+            "privateKey": "S5qCpr0v8t8ob-m4pGvSXcdMbxIooTj3Gd3TKi4SGj8"
         }
     },
     "packages": {

@@ -212,11 +212,12 @@ export const SettingsPage = () => {
         )}
 
         {activeTab === 'notifications' && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Notification Preferences</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
+          <div className="space-y-6">            
+            <Card>
+              <CardHeader>
+                <CardTitle>Notification Preferences</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
               <div className="space-y-4">
                 <Checkbox
                   label="Email Notifications"
@@ -257,6 +258,7 @@ export const SettingsPage = () => {
               </div>
             </CardContent>
           </Card>
+          </div>
         )}
 
         {activeTab === 'security' && (
