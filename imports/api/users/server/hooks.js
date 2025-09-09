@@ -117,15 +117,16 @@ Accounts.onCreateUser((options, user) => {
   // Assign default role to new users (team members)
   Meteor.defer(() => {
     try {
-      if (Roles && typeof Roles.userIsInRole === 'function') {
+      if (Roles && typeof Roles.userIsInRole === 'function' && user._id) {
         if (!Roles.userIsInRole(user._id, ['admin', 'supervisor'])) {
           Roles.addUsersToRoles(user._id, ['member']);
+          console.log('✅ Assigned member role to user:', user._id);
         }
       } else {
-        console.warn('Roles package not available, skipping role assignment');
+        console.warn('⚠️ Roles package not available or user ID missing, skipping role assignment');
       }
     } catch (error) {
-      console.error('Error assigning user roles:', error);
+      console.error('❌ Error assigning user roles:', error);
     }
   });
 

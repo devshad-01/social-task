@@ -6,7 +6,7 @@ import { Avatar } from '../components/common/Avatar';
 import { Input } from '../components/common/Input';
 import { EmptyState } from '../components/common/EmptyState';
 import { ClientCard } from '../components/clients/ClientCard';
-import { ClientModal } from '../components/clients/ClientModal';
+import { ClientManagementModal } from '../components/clients/ClientManagementModal';
 import { Icons } from '../components/Icons';
 
 export const ClientsPage = () => {
@@ -305,7 +305,7 @@ export const ClientsPage = () => {
       )}
 
       {/* Create Client Modal */}
-      <ClientModal
+      <ClientManagementModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onSave={handleCreateClient}
@@ -314,7 +314,7 @@ export const ClientsPage = () => {
 
       {/* Client Details Modal */}
       {selectedClient && (
-        <ClientModal
+        <ClientManagementModal
           isOpen={!!selectedClient}
           onClose={() => setSelectedClient(null)}
           onSave={handleUpdateClient}

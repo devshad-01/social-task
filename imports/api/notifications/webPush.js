@@ -77,13 +77,15 @@ export const WebPushService = {
         return true;
       } else {
         // Fallback for browsers without service worker support
+        // Note: Actions are not supported without service worker
         const notification = new Notification(title, {
           body: message,
           icon: icon,
           badge: icon,
           tag: 'posty-notification',
-          requireInteraction: true,
+          requireInteraction: false, // Better UX
           data: { actionUrl, ...data }
+          // No actions array for non-service worker notifications
         });
 
         // Handle notification click
