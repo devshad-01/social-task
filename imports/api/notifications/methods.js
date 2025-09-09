@@ -48,19 +48,34 @@ Meteor.methods({
     // Include taskId in data field for task-related notifications
     if (!notificationData.data && notificationData.relatedType === 'task' && notificationData.relatedId) {
       notificationData.data = {
-        taskId: notificationData.relatedId,
-        type: notificationData.type
+        taskId: notificationData.relatedId
       };
     }
 
-    const notificationId = await Notifications.insertAsync({
+    const newNotificationId = await Notifications.insertAsync({
       ...notificationData,
-      createdBy: this.userId,
       createdAt: new Date(),
-      updatedAt: new Date()
+      read: false
     });
 
-    return notificationId;
+    // Send push notification if this is a high-priority notification
+    if (notificationData.priority === 'high' || ['task_assigned', 'task_completed'].includes(notificationData.type)) {
+      try {
+        await Meteor.callAsync('webPush.sendNotification', {
+          title: notificationData.title,
+          message: notificationData.message,
+          actionUrl: notificationData.actionUrl,
+          data: notificationData.data || {},
+          userIds: [notificationData.userId]
+        });
+        console.log(`✅ Push notification sent for ${notificationData.type}`);
+      } catch (error) {
+        console.error(`❌ Failed to send push notification for ${notificationData.type}:`, error);
+        // Don't fail the notification creation if push fails
+      }
+    }
+
+    return newNotificationId;
   },
 
   /**

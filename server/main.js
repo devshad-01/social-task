@@ -13,6 +13,7 @@ import '../imports/api/tasks/methods';
 import '../imports/api/tasks/server';
 import '../imports/api/notifications/methods';
 import '../imports/api/notifications/server/publications';
+import '../imports/api/notifications/webPushServer';
 import './cloudinary_methods.js';
 import '../imports/api/clients/server/publications';
 import '../imports/startup/server/index.js';

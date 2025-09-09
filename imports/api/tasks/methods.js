@@ -332,6 +332,25 @@ Meteor.methods({
       }
     });
 
+    // Send notifications when task is completed
+    if (status === 'completed') {
+      try {
+        const currentUser = await Meteor.users.findOneAsync(this.userId);
+        const userName = currentUser?.profile?.fullName || currentUser?.emails?.[0]?.address || 'Someone';
+        
+        // Get all admins and supervisors to notify
+        const adminUsers = await Meteor.users.find({
+          'profile.role': { $in: ['admin', 'supervisor'] }
+        }).fetchAsync();
+        const adminIds = adminUsers.map(user => user._id);
+        
+        await Meteor.callAsync('notifications.taskCompleted', taskId, task.title, task.createdBy, adminIds);
+        console.log('[SERVER] tasks.updateStatus] Task completion notification sent');
+      } catch (error) {
+        console.error('[SERVER] tasks.updateStatus] Failed to send completion notification:', error);
+      }
+    }
+
     return true;
   }
 });
