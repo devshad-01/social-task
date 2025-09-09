@@ -23,14 +23,22 @@ export const ProfilePage = () => {
 
   const handleEnableNotifications = async () => {
     try {
-      const granted = await WebPushService.requestPermission();
-      setNotificationPermission(granted ? 'granted' : 'denied');
-      if (granted) {
-        // Send a test notification
-        await WebPushService.sendNotification({
-          title: 'Notifications Enabled!',
-          message: 'You will now receive push notifications for task updates.',
-          actionUrl: '/notifications'
+      const subscription = await WebPushService.requestPermissionAndSubscribe();
+      setNotificationPermission(subscription ? 'granted' : 'denied');
+      if (subscription) {
+        // Send a test notification using the new notification system
+        await new Promise((resolve, reject) => {
+          Meteor.call('notifications.sendTest', {
+            title: 'Notifications Enabled!',
+            message: 'You will now receive push notifications for task updates.',
+            actionUrl: '/notifications'
+          }, (error, result) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve(result);
+            }
+          });
         });
       }
     } catch (error) {
@@ -40,10 +48,18 @@ export const ProfilePage = () => {
 
   const handleTestNotification = async () => {
     try {
-      await WebPushService.sendNotification({
-        title: 'Test Notification',
-        message: 'This is a test notification to check if everything is working correctly!',
-        actionUrl: '/dashboard'
+      await new Promise((resolve, reject) => {
+        Meteor.call('notifications.sendTest', {
+          title: 'Test Notification',
+          message: 'This is a test notification to check if everything is working correctly!',
+          actionUrl: '/dashboard'
+        }, (error, result) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(result);
+          }
+        });
       });
     } catch (error) {
       console.error('Error sending test notification:', error);
