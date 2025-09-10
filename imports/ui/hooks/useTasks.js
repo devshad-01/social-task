@@ -20,7 +20,17 @@ export const useTasks = () => {
     }
 
     // Subscribe to appropriate tasks based on user role
-    const isAdmin = Roles.userIsInRole(user._id, ['admin', 'supervisor']);
+    const isAdmin = Roles.userIsInRole(user._id, ['admin', 'supervisor']) || 
+                    user?.profile?.role === 'admin' || 
+                    user?.profile?.role === 'supervisor';
+                    
+    console.log('[useTasks] User role check:', {
+      userId: user._id,
+      profileRole: user?.profile?.role,
+      rolesPackageAdmin: Roles.userIsInRole(user._id, ['admin', 'supervisor']),
+      finalIsAdmin: isAdmin
+    });
+    
     const subscription = isAdmin ? 
       Meteor.subscribe('tasks.all') : 
       Meteor.subscribe('tasks.assigned');
@@ -28,6 +38,13 @@ export const useTasks = () => {
     const tasks = Tasks.find({}, {
       sort: { createdAt: -1 }
     }).fetch();
+    
+    console.log('[useTasks] Query results:', {
+      subscription: isAdmin ? 'tasks.all' : 'tasks.assigned',
+      ready: subscription.ready(),
+      tasksCount: tasks.length,
+      tasks: tasks.map(t => ({ id: t._id, title: t.title, assigneeIds: t.assigneeIds }))
+    });
 
     return {
       tasks,

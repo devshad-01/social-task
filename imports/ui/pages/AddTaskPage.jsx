@@ -397,7 +397,6 @@ export const AddTaskPage = () => {
               type="submit"
               variant="primary"
               disabled={loading}
-              className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2"
             >
               {loading ? (
                 <>

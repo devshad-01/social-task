@@ -61,7 +61,10 @@ export const TaskModal = ({
 
   const handleCompleteTask = () => {
     if (window.confirm('Are you sure you want to mark this task as complete?')) {
-      onSave({ ...task, status: 'completed' });
+      onSave({ 
+        status: 'completed',
+        completedAt: new Date()
+      });
     }
   };
 

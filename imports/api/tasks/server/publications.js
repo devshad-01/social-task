@@ -3,11 +3,11 @@ import { check } from 'meteor/check';
 import { Roles } from 'meteor/alanning:roles';
 import { Tasks } from '../TasksCollection';
 
-// Helper function to check user roles (async)
+// Helper function to check user roles (async version for publications)
 async function isUserInRole(userId, roles) {
   if (!userId) return false;
   
-  // Check Meteor.users collection for profile.role
+  // Check Meteor.users collection for profile.role using async method
   const user = await Meteor.users.findOneAsync(userId);
   if (user?.profile?.role && roles.includes(user.profile.role)) {
     return true;
@@ -22,17 +22,19 @@ async function isUserInRole(userId, roles) {
 }
 
 // Publication for all tasks (admin/supervisor only)
-Meteor.publish('tasks.all', function() {
+Meteor.publish('tasks.all', async function() {
   // Check if user is logged in
   if (!this.userId) {
     return this.ready();
   }
 
   // Only admins and supervisors can see all tasks
-  if (!isUserInRole(this.userId, ['admin', 'supervisor'])) {
+  if (!(await isUserInRole(this.userId, ['admin', 'supervisor']))) {
+    console.log(`[tasks.all] User ${this.userId} is not admin/supervisor, denying access`);
     return this.ready();
   }
 
+  console.log(`[tasks.all] Publishing all tasks for admin user ${this.userId}`);
   return Tasks.find({}, {
     sort: { createdAt: -1 }
   });
@@ -54,7 +56,7 @@ Meteor.publish('tasks.assigned', function() {
 });
 
 // Publication for tasks by client
-Meteor.publish('tasks.byClient', function(clientId) {
+Meteor.publish('tasks.byClient', async function(clientId) {
   check(clientId, String);
 
   // Check if user is logged in
@@ -66,7 +68,7 @@ Meteor.publish('tasks.byClient', function(clientId) {
   let query = { clientId: clientId };
   
   // If not admin/supervisor, only show tasks assigned to them
-  if (!isUserInRole(this.userId, ['admin', 'supervisor'])) {
+  if (!(await isUserInRole(this.userId, ['admin', 'supervisor']))) {
     query.assigneeIds = this.userId;
   }
 
@@ -76,7 +78,7 @@ Meteor.publish('tasks.byClient', function(clientId) {
 });
 
 // Publication for tasks by status
-Meteor.publish('tasks.byStatus', function(status) {
+Meteor.publish('tasks.byStatus', async function(status) {
   check(status, String);
 
   // Check if user is logged in
@@ -88,7 +90,7 @@ Meteor.publish('tasks.byStatus', function(status) {
   let query = { status: status };
   
   // If not admin/supervisor, only show tasks assigned to them
-  if (!isUserInRole(this.userId, ['admin', 'supervisor'])) {
+  if (!(await isUserInRole(this.userId, ['admin', 'supervisor']))) {
     query.assigneeIds = this.userId;
   }
 
@@ -98,7 +100,7 @@ Meteor.publish('tasks.byStatus', function(status) {
 });
 
 // Publication for overdue tasks
-Meteor.publish('tasks.overdue', function() {
+Meteor.publish('tasks.overdue', async function() {
   // Check if user is logged in
   if (!this.userId) {
     return this.ready();
@@ -111,7 +113,7 @@ Meteor.publish('tasks.overdue', function() {
   };
   
   // If not admin/supervisor, only show tasks assigned to them
-  if (!isUserInRole(this.userId, ['admin', 'supervisor'])) {
+  if (!(await isUserInRole(this.userId, ['admin', 'supervisor']))) {
     query.assigneeIds = this.userId;
   }
 
@@ -121,7 +123,7 @@ Meteor.publish('tasks.overdue', function() {
 });
 
 // Publication for today's tasks
-Meteor.publish('tasks.today', function() {
+Meteor.publish('tasks.today', async function() {
   // Check if user is logged in
   if (!this.userId) {
     return this.ready();
@@ -142,7 +144,7 @@ Meteor.publish('tasks.today', function() {
   };
   
   // If not admin/supervisor, only show tasks assigned to them
-  if (!isUserInRole(this.userId, ['admin', 'supervisor'])) {
+  if (!(await isUserInRole(this.userId, ['admin', 'supervisor']))) {
     query.assigneeIds = this.userId;
   }
 
@@ -178,7 +180,7 @@ Meteor.publish('tasks.single', async function(taskId) {
   }
 
   // Check if user can view the task (with defensive check for Roles)
-  const canView = await isUserInRole(this.userId, ['admin', 'supervisor', 'team-member']) || 
+  const canView = (await isUserInRole(this.userId, ['admin', 'supervisor', 'team-member'])) || 
                  (task.assigneeIds && task.assigneeIds.includes(this.userId));
 
   if (!canView) {
@@ -204,7 +206,7 @@ Meteor.publish('tasks.byId', async function(taskId) {
   }
 
   // Check if user can view the task (with defensive check for Roles)
-  const canView = await isUserInRole(this.userId, ['admin', 'supervisor', 'team-member']) || 
+  const canView = (await isUserInRole(this.userId, ['admin', 'supervisor', 'team-member'])) || 
                  (task.assigneeIds && task.assigneeIds.includes(this.userId));
 
   if (!canView) {
