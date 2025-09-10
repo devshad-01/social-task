@@ -5,6 +5,28 @@ import { Tasks } from './TasksCollection';
 
 console.log('[SERVER] Loading tasks methods file...');
 
+// Helper function to safely check user roles (async version for methods)
+async function isUserInRole(userId, roles) {
+  if (!userId) return false;
+  
+  try {
+    // Check profile.role first for compatibility
+    const user = await Meteor.users.findOneAsync(userId);
+    if (user?.profile?.role && roles.includes(user.profile.role)) {
+      return true;
+    }
+    
+    // Fallback to Meteor Roles package
+    if (Roles && typeof Roles.userIsInRole === 'function') {
+      return Roles.userIsInRole(userId, roles);
+    }
+  } catch (error) {
+    console.error('[METHODS] Error checking user role:', error);
+  }
+  
+  return false;
+}
+
 // Task creation method
 Meteor.methods({
   async 'tasks.insert'(taskData) {
@@ -35,11 +57,9 @@ Meteor.methods({
       }
 
       // Check if user has permission to create tasks (admin/supervisor only)
-      if (Roles && typeof Roles.userIsInRole === 'function' && this.userId) {
-        if (!Roles.userIsInRole(this.userId, ['admin', 'supervisor'])) {
-          console.error('[SERVER] tasks.insert] User does not have permission:', this.userId);
-          throw new Meteor.Error('not-authorized', 'Only admins and supervisors can create tasks');
-        }
+      if (!(await isUserInRole(this.userId, ['admin', 'supervisor']))) {
+        console.error('[SERVER] tasks.insert] User does not have permission:', this.userId);
+        throw new Meteor.Error('not-authorized', 'Only admins and supervisors can create tasks');
       }
 
       console.log('[SERVER] tasks.insert] User has permission, proceeding...');
@@ -125,7 +145,10 @@ Meteor.methods({
       assigneeIds: Match.Optional([String]),
       socialAccountIds: Match.Optional([String]),
       attachments: Match.Optional([Object]),
-      tags: Match.Optional([String])
+      tags: Match.Optional([String]),
+      completedAt: Match.Optional(Date),
+      archived: Match.Optional(Boolean),
+      archivedAt: Match.Optional(Date)
     });
 
     // Check if user is logged in
@@ -140,7 +163,7 @@ Meteor.methods({
     }
 
     // Check permissions
-    const isAdmin = Roles.userIsInRole(this.userId, ['admin', 'supervisor']);
+    const isAdmin = await isUserInRole(this.userId, ['admin', 'supervisor']);
     const isAssigned = task.assigneeIds && task.assigneeIds.includes(this.userId);
     
     if (!isAdmin && !isAssigned) {
@@ -202,7 +225,7 @@ Meteor.methods({
     }
 
     // Only admins and supervisors can delete tasks
-    if (!Roles.userIsInRole(this.userId, ['admin', 'supervisor'])) {
+    if (!(await isUserInRole(this.userId, ['admin', 'supervisor']))) {
       throw new Meteor.Error('not-authorized', 'Only admins and supervisors can delete tasks');
     }
 
@@ -233,7 +256,7 @@ Meteor.methods({
     }
 
     // Check if user can view the task
-    const canView = Roles.userIsInRole(this.userId, ['admin', 'supervisor']) || 
+    const canView = (await isUserInRole(this.userId, ['admin', 'supervisor'])) || 
                    (task.assigneeIds && task.assigneeIds.includes(this.userId));
     
     if (!canView) {
@@ -267,7 +290,7 @@ Meteor.methods({
     }
 
     // Only admins and supervisors can assign users
-    if (!Roles.userIsInRole(this.userId, ['admin', 'supervisor'])) {
+    if (!(await isUserInRole(this.userId, ['admin', 'supervisor']))) {
       throw new Meteor.Error('not-authorized', 'Only admins and supervisors can assign users to tasks');
     }
 
@@ -335,9 +358,7 @@ Meteor.methods({
     }
 
     // Check permissions
-    const isAdmin = (Roles && typeof Roles.userIsInRole === 'function' && this.userId) 
-      ? Roles.userIsInRole(this.userId, ['admin', 'supervisor'])
-      : false;
+    const isAdmin = await isUserInRole(this.userId, ['admin', 'supervisor']);
     const isAssigned = task.assigneeIds && task.assigneeIds.includes(this.userId);
     
     if (!isAdmin && !isAssigned) {

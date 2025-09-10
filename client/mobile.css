@@ -5,6 +5,23 @@
 .layout-mobile {
   background: var(--neutral-50);
   min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Fix for task details page scrolling */
+.task-details-page {
+  padding: 80px 20px 100px;
+  min-height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure edit task page can scroll */
+.edit-task-page {
+  padding: 80px 20px 100px;
+  min-height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Enhanced Mobile Header */

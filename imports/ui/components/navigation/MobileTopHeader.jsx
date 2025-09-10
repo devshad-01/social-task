@@ -41,7 +41,9 @@ export const MobileTopHeader = () => {
     if (path === '/posts') return 'Posts';
     if (path === '/add-task') return 'Add Task';
     if (path === '/add-post') return 'Add Post';
-    return 'TaskFlow Pro';
+    if (path.includes('/tasks/') && path.includes('/edit')) return 'Edit Task';
+    if (path.includes('/tasks/')) return 'Task Details';
+    return 'Dashboard';
   };
 
   return (

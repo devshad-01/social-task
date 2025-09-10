@@ -49,7 +49,6 @@ export const TaskDetailsPage = () => {
 
   const handleComplete = () => {
     Meteor.call('tasks.update', task._id, {
-      ...task,
       status: 'completed',
       completedAt: new Date()
     }, (error) => {
@@ -61,7 +60,7 @@ export const TaskDetailsPage = () => {
   };
 
   const handleDelete = () => {
-    Meteor.call('tasks.remove', task._id, (error) => {
+    Meteor.call('tasks.delete', task._id, (error) => {
       if (error) {
         console.error('Error deleting task:', error);
       } else {
@@ -73,7 +72,6 @@ export const TaskDetailsPage = () => {
 
   const handleArchive = () => {
     Meteor.call('tasks.update', task._id, {
-      ...task,
       archived: true,
       archivedAt: new Date()
     }, (error) => {
@@ -182,6 +180,14 @@ export const TaskDetailsPage = () => {
           {/* Admin Actions */}
           {isAdmin && (
             <div className="admin-actions">
+              <button 
+                onClick={() => navigate(`/tasks/${task._id}/edit`)}
+                className="btn-primary"
+              >
+                <Icons.edit className="w-4 h-4 mr-2" />
+                Edit Task
+              </button>
+              
               {task.status !== 'completed' && (
                 <button 
                   onClick={() => setShowCompleteConfirm(true)}
