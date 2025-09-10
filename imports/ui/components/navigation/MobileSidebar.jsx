@@ -122,16 +122,7 @@ export const MobileSidebar = () => {
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="sidebar-footer">
-            <button 
-              onClick={handleLogout}
-              className="sidebar-logout"
-            >
-              <Icons.logout />
-              <span>Sign Out</span>
-            </button>
-          </div>
+          {/* Footer - Removed logout, moved to profile page */}
         </div>
       </div>
     </div>

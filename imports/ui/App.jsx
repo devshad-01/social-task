@@ -10,6 +10,7 @@ import { ClientsPage } from './pages/ClientsPage';
 import { TeamPage } from './pages/TeamPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { AuthRequired } from './components/AuthRequired';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AuthContainer } from './components/auth/AuthContainer';
 import { useTokenRoutes } from './hooks/useTokenRoutes';
 import { PostsPage } from './pages/PostsPage';
@@ -106,12 +107,38 @@ export const App = () => {
           <Route path="notifications" element={<NotificationsPage />} />
           <Route path="notifications/:id" element={<NotificationsPage />} />
           <Route path="profile" element={<ProfilePage />} />
-          <Route path="clients" element={<ClientsPage />} />
-          <Route path="team" element={<TeamPage />} />
-          <Route path="analytics" element={<AnalyticsPage />} />
-          <Route path="posts" element={<PostsPage />} />
-          <Route path="add-post" element={<AddPosts />} />
-          <Route path="add-task" element={<AddTaskPage />} />
+          
+          {/* Admin-only routes */}
+          <Route path="clients" element={
+            <ProtectedRoute adminOnly={true}>
+              <ClientsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="team" element={
+            <ProtectedRoute adminOnly={true}>
+              <TeamPage />
+            </ProtectedRoute>
+          } />
+          <Route path="analytics" element={
+            <ProtectedRoute adminOnly={true}>
+              <AnalyticsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="posts" element={
+            <ProtectedRoute adminOnly={true}>
+              <PostsPage />
+            </ProtectedRoute>
+          } />
+          <Route path="add-post" element={
+            <ProtectedRoute adminOnly={true}>
+              <AddPosts />
+            </ProtectedRoute>
+          } />
+          <Route path="add-task" element={
+            <ProtectedRoute adminOnly={true}>
+              <AddTaskPage />
+            </ProtectedRoute>
+          } />
       
         </Route>
         

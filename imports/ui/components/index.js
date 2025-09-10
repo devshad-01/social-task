@@ -18,6 +18,7 @@ export { Card, CardHeader, CardTitle, CardContent, CardFooter } from './common/C
 export { Alert } from './common/Alert';
 export { Badge } from './common/Badge';
 export { Avatar } from './common/Avatar';
+export { MobileLoader } from './common/MobileLoader';
 export { Modal } from './common/Modal';
 export { Loading } from './common/Loading';
 export { EmptyState } from './common/EmptyState';

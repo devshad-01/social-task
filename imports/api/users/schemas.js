@@ -21,7 +21,7 @@ export const userSchema = z.object({
       lastName: z.string().min(1, "Last name is required").max(50, "Last name cannot exceed 50 characters"),
       avatar: z.string().url().optional(),
       bio: z.string().max(500, "Bio cannot exceed 500 characters").optional(),
-      role: z.enum(["admin", "manager", "user"]).default("user"),
+      role: z.enum(["admin", "team-member"]).default("team-member"),
       settings: z.object({
         notifications: z.boolean().default(true),
         theme: z.enum(["light", "dark", "system"]).default("system")

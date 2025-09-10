@@ -3,11 +3,23 @@ import { check } from 'meteor/check';
 import { Roles } from 'meteor/alanning:roles';
 import { Tasks } from '../TasksCollection';
 
-// Helper function to safely check user roles
-const isUserInRole = (userId, roles) => {
-  return Roles && typeof Roles.userIsInRole === 'function' && 
-         Roles.userIsInRole(userId, roles);
-};
+// Helper function to check user roles (async)
+async function isUserInRole(userId, roles) {
+  if (!userId) return false;
+  
+  // Check Meteor.users collection for profile.role
+  const user = await Meteor.users.findOneAsync(userId);
+  if (user?.profile?.role && roles.includes(user.profile.role)) {
+    return true;
+  }
+  
+  // Fallback to Meteor Roles package if available
+  if (typeof Roles !== 'undefined' && Roles.userIsInRole) {
+    return Roles.userIsInRole(userId, roles);
+  }
+  
+  return false;
+}
 
 // Publication for all tasks (admin/supervisor only)
 Meteor.publish('tasks.all', function() {
@@ -166,8 +178,8 @@ Meteor.publish('tasks.single', async function(taskId) {
   }
 
   // Check if user can view the task (with defensive check for Roles)
-  const canView = isUserInRole(this.userId, ['admin', 'supervisor']) || 
-                 task.assigneeIds.includes(this.userId);
+  const canView = await isUserInRole(this.userId, ['admin', 'supervisor', 'team-member']) || 
+                 (task.assigneeIds && task.assigneeIds.includes(this.userId));
 
   if (!canView) {
     return this.ready();
@@ -192,8 +204,8 @@ Meteor.publish('tasks.byId', async function(taskId) {
   }
 
   // Check if user can view the task (with defensive check for Roles)
-  const canView = isUserInRole(this.userId, ['admin', 'supervisor']) || 
-                 task.assigneeIds.includes(this.userId);
+  const canView = await isUserInRole(this.userId, ['admin', 'supervisor', 'team-member']) || 
+                 (task.assigneeIds && task.assigneeIds.includes(this.userId));
 
   if (!canView) {
     return this.ready();

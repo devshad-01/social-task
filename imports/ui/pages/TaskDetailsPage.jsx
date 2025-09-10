@@ -1,69 +1,51 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { useTracker } from 'meteor/react-meteor-data';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
-import { Roles } from 'meteor/alanning:roles';
 import { Tasks } from '../../api/tasks/TasksCollection';
+import { useResponsive } from '../hooks/useResponsive';
+import { useRole } from '../hooks/useRole';
+import { MobileLoader } from '../components/common/MobileLoader';
+import { Icons } from '../components/Icons';
 
 export const TaskDetailsPage = () => {
+  console.log('[TaskDetailsPage] Component mounting');
   const { id } = useParams();
+  console.log('[TaskDetailsPage] Task ID from params:', id);
+  
   const navigate = useNavigate();
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { isMobile } = useResponsive();
+  const { hasRole } = useRole();
   const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
 
-  const { user } = useTracker(() => ({
-    user: Meteor.user()
-  }), []);
-
-  const isAdmin = user && Roles.userIsInRole(user._id, ['admin', 'supervisor']);
-
-  // Track the specific task
-  const { task, loading } = useTracker(() => {
-    const handle = Meteor.subscribe('tasks.byId', id);
-    const task = Tasks.findOne(id);
+  const { task, loading, assignees } = useTracker(() => {
+    console.log('[TaskDetailsPage] useTracker called with id:', id);
+    const sub = Meteor.subscribe('tasks.single', id);
+    const usersSub = Meteor.subscribe('users.all');
     
+    const taskData = Tasks.findOne(id);
+    const assigneeIds = taskData?.assigneeIds || [];
+    const assigneeUsers = Meteor.users.find({ 
+      _id: { $in: assigneeIds } 
+    }).fetch();
+
+    // Debug logging
+    console.log('[TaskDetailsPage] Subscription ready:', sub.ready(), usersSub.ready());
+    console.log('[TaskDetailsPage] Task data:', taskData);
+    console.log('[TaskDetailsPage] Task ID:', id);
+    console.log('[TaskDetailsPage] Current user:', Meteor.userId());
+    console.log('[TaskDetailsPage] All tasks in collection:', Tasks.find().fetch());
+
     return {
-      task,
-      loading: !handle.ready()
+      task: taskData,
+      loading: !sub.ready() || !usersSub.ready(),
+      assignees: assigneeUsers
     };
   }, [id]);
 
-  if (loading) {
-    return (
-      <div className="page-container">
-        <div>Loading...</div>
-      </div>
-    );
-  }
-
-  if (!task) {
-    return (
-      <div className="page-container">
-        <div className="page-header">
-          <h1 className="page-title">Task Not Found</h1>
-          <p className="text-gray-600">The task you're looking for doesn't exist or you don't have permission to view it.</p>
-          <button 
-            onClick={() => navigate('/tasks')}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Back to Tasks
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const handleDelete = () => {
-    Meteor.call('tasks.remove', task._id, (error) => {
-      if (error) {
-        console.error('Error deleting task:', error);
-      } else {
-        navigate('/tasks');
-      }
-    });
-    setShowDeleteConfirm(false);
-  };
+  const isAdmin = hasRole(['admin', 'supervisor']);
 
   const handleComplete = () => {
     Meteor.call('tasks.update', task._id, {
@@ -78,6 +60,30 @@ export const TaskDetailsPage = () => {
     setShowCompleteConfirm(false);
   };
 
+  const handleDelete = () => {
+    Meteor.call('tasks.remove', task._id, (error) => {
+      if (error) {
+        console.error('Error deleting task:', error);
+      } else {
+        navigate('/tasks');
+      }
+    });
+    setShowDeleteConfirm(false);
+  };
+
+  const handleArchive = () => {
+    Meteor.call('tasks.update', task._id, {
+      ...task,
+      archived: true,
+      archivedAt: new Date()
+    }, (error) => {
+      if (error) {
+        console.error('Error archiving task:', error);
+      }
+    });
+    setShowArchiveConfirm(false);
+  };
+
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -88,151 +94,231 @@ export const TaskDetailsPage = () => {
     });
   };
 
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case 'urgent': return 'priority-urgent';
+      case 'high': return 'priority-high';
+      case 'medium': return 'priority-medium';
+      case 'low': return 'priority-low';
+      default: return 'priority-medium';
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'completed': return 'status-completed';
+      case 'in_progress': return 'status-progress';
+      case 'pending': return 'status-pending';
+      default: return 'status-pending';
+    }
+  };
+
+  if (loading) {
+    console.log('[TaskDetailsPage] Showing loading state');
+    return (
+      <div className="task-details-page loading">
+        {isMobile ? (
+          <MobileLoader 
+            type="spinner" 
+            message="Loading task details..." 
+            size="medium"
+          />
+        ) : (
+          <div className="loading-spinner">
+            <Icons.loader className="w-8 h-8 animate-spin" />
+            <p>Loading task details...</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (!task) {
+    console.log('[TaskDetailsPage] No task found, showing error state');
+    return (
+      <div className="task-details-page error">
+        <div className="error-state">
+          <Icons.alertTriangle className="w-12 h-12 text-red-500 mb-4" />
+          <h2>Task Not Found</h2>
+          <p>The task you're looking for doesn't exist or you don't have permission to view it.</p>
+          <p>Task ID: {id}</p>
+          <button onClick={() => navigate('/tasks')} className="btn-primary mt-4">
+            <Icons.arrowLeft className="w-4 h-4 mr-2" />
+            Back to Tasks
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="page-container">
+    <div className="task-details-page">
       {/* Header */}
-      <div className="page-header">
-        <div>
+      <div className="task-details-header">
+        <div className="header-nav">
           <button 
             onClick={() => navigate('/tasks')}
-            className="mb-4 px-3 py-1 text-blue-600 hover:bg-gray-100 rounded"
+            className="back-button"
           >
-            ← Back to Tasks
+            <Icons.arrowLeft className="w-5 h-5 mr-2" />
+            Back to Tasks
           </button>
-          <h1 className="page-title">{task.title}</h1>
-          <div className="flex items-center gap-3 mt-2">
-            <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
-              {task.status.replace('_', ' ').toUpperCase()}
-            </span>
-            <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded">
-              {task.priority.toUpperCase()} Priority
-            </span>
-          </div>
         </div>
-        
-        <div className="flex gap-2">
+
+        <div className="task-header-content">
+          <div className="task-header-info">
+            <h1 className="task-title">{task.title}</h1>
+            <div className="task-meta">
+              <span className={`task-status ${getStatusColor(task.status)}`}>
+                {task.status.replace('_', ' ').toUpperCase()}
+              </span>
+              <span className={`task-priority ${getPriorityColor(task.priority)}`}>
+                <Icons.flag className="w-4 h-4 mr-1" />
+                {task.priority.toUpperCase()} PRIORITY
+              </span>
+            </div>
+          </div>
+
+          {/* Admin Actions */}
           {isAdmin && (
-            <>
-              <button
-                onClick={() => setShowEditModal(true)}
-                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
-                Edit
-              </button>
-              
+            <div className="admin-actions">
               {task.status !== 'completed' && (
-                <button
+                <button 
                   onClick={() => setShowCompleteConfirm(true)}
-                  className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                  className="btn-success"
                 >
-                  Complete
+                  <Icons.check className="w-4 h-4 mr-2" />
+                  Mark Complete
                 </button>
               )}
               
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              <button 
+                onClick={() => setShowArchiveConfirm(true)}
+                className="btn-warning"
               >
+                <Icons.archive className="w-4 h-4 mr-2" />
+                Archive
+              </button>
+              
+              <button 
+                onClick={() => setShowDeleteConfirm(true)}
+                className="btn-danger"
+              >
+                <Icons.trash className="w-4 h-4 mr-2" />
                 Delete
               </button>
-            </>
+            </div>
           )}
         </div>
       </div>
 
-      {/* Task Details */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Description */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-4">Description</h3>
-            <p className="text-gray-700 whitespace-pre-wrap">
-              {task.description || 'No description provided.'}
-            </p>
-          </div>
-
-          {/* Activity placeholder */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-4">Activity</h3>
-            <p className="text-gray-500 text-center py-8">
-              Activity log coming soon...
-            </p>
+      {/* Content */}
+      <div className="task-details-content">
+        {/* Description Section */}
+        <div className="task-section">
+          <h2 className="section-title">
+            <Icons.fileText className="w-5 h-5 mr-2" />
+            Description
+          </h2>
+          <div className="task-description">
+            {task.description || <em className="text-gray-500">No description provided</em>}
           </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Task Info */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-4">Task Information</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-500">Status</label>
-                <div className="mt-1">
-                  <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
-                    {task.status.replace('_', ' ').toUpperCase()}
-                  </span>
+        {/* Assignees Section */}
+        {assignees.length > 0 && (
+          <div className="task-section">
+            <h2 className="section-title">
+              <Icons.users className="w-5 h-5 mr-2" />
+              Assigned to ({assignees.length})
+            </h2>
+            <div className="assignees-grid">
+              {assignees.map((assignee) => (
+                <div key={assignee._id} className="assignee-card">
+                  <div className="assignee-avatar">
+                    {assignee.profile?.avatar ? (
+                      <img src={assignee.profile.avatar} alt={assignee.profile.firstName || assignee.username} />
+                    ) : (
+                      <span>{(assignee.profile?.firstName || assignee.username || 'U').charAt(0).toUpperCase()}</span>
+                    )}
+                  </div>
+                  <div className="assignee-info">
+                    <h4 className="assignee-name">
+                      {assignee.profile?.firstName} {assignee.profile?.lastName || assignee.username}
+                    </h4>
+                    <p className="assignee-email">{assignee.emails?.[0]?.address}</p>
+                  </div>
                 </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-gray-500">Priority</label>
-                <div className="mt-1">
-                  <span className="px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded">
-                    {task.priority.toUpperCase()}
-                  </span>
-                </div>
-              </div>
-
-              {task.dueDate && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Due Date</label>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {formatDate(task.dueDate)}
-                  </p>
-                </div>
-              )}
-
-              <div>
-                <label className="text-sm font-medium text-gray-500">Created</label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {formatDate(task.createdAt)}
-                </p>
-              </div>
-
-              {task.completedAt && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Completed</label>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {formatDate(task.completedAt)}
-                  </p>
-                </div>
-              )}
+              ))}
             </div>
+          </div>
+        )}
+
+        {/* Task Details Grid */}
+        <div className="task-details-grid">
+          <div className="task-detail-card">
+            <h3 className="detail-title">
+              <Icons.calendar className="w-5 h-5 mr-2" />
+              Due Date
+            </h3>
+            <p className="detail-value">
+              {task.dueDate ? formatDate(task.dueDate) : 'No due date set'}
+            </p>
+          </div>
+
+          <div className="task-detail-card">
+            <h3 className="detail-title">
+              <Icons.clock className="w-5 h-5 mr-2" />
+              Created
+            </h3>
+            <p className="detail-value">
+              {formatDate(task.createdAt)}
+            </p>
+          </div>
+
+          {task.completedAt && (
+            <div className="task-detail-card">
+              <h3 className="detail-title">
+                <Icons.check className="w-5 h-5 mr-2" />
+                Completed
+              </h3>
+              <p className="detail-value">
+                {formatDate(task.completedAt)}
+              </p>
+            </div>
+          )}
+
+          <div className="task-detail-card">
+            <h3 className="detail-title">
+              <Icons.tag className="w-5 h-5 mr-2" />
+              Category
+            </h3>
+            <p className="detail-value">
+              {task.category || 'General'}
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Simple modals using basic styling */}
+      {/* Confirmation Modals */}
       {showCompleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Complete Task</h3>
-            <p className="text-sm text-gray-500 mb-6">
-              Are you sure you want to mark "{task.title}" as completed?
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button 
-                onClick={() => setShowCompleteConfirm(false)}
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
-              >
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3 className="modal-title">Complete Task</h3>
+              <button onClick={() => setShowCompleteConfirm(false)} className="modal-close">
+                <Icons.x className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>Are you sure you want to mark "<strong>{task.title}</strong>" as completed?</p>
+            </div>
+            <div className="modal-actions">
+              <button onClick={() => setShowCompleteConfirm(false)} className="btn-secondary">
                 Cancel
               </button>
-              <button 
-                onClick={handleComplete}
-                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-              >
+              <button onClick={handleComplete} className="btn-success">
+                <Icons.check className="w-4 h-4 mr-2" />
                 Complete Task
               </button>
             </div>
@@ -241,24 +327,49 @@ export const TaskDetailsPage = () => {
       )}
 
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Delete Task</h3>
-            <p className="text-sm text-gray-500 mb-6">
-              Are you sure you want to delete "{task.title}" ? This action cannot be undone.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button 
-                onClick={() => setShowDeleteConfirm(false)}
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
-              >
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3 className="modal-title">Delete Task</h3>
+              <button onClick={() => setShowDeleteConfirm(false)} className="modal-close">
+                <Icons.x className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>Are you sure you want to delete "<strong>{task.title}</strong>"? This action cannot be undone.</p>
+            </div>
+            <div className="modal-actions">
+              <button onClick={() => setShowDeleteConfirm(false)} className="btn-secondary">
                 Cancel
               </button>
-              <button 
-                onClick={handleDelete}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-              >
+              <button onClick={handleDelete} className="btn-danger">
+                <Icons.trash className="w-4 h-4 mr-2" />
                 Delete Task
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showArchiveConfirm && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3 className="modal-title">Archive Task</h3>
+              <button onClick={() => setShowArchiveConfirm(false)} className="modal-close">
+                <Icons.x className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>Are you sure you want to archive "<strong>{task.title}</strong>"? You can restore it later.</p>
+            </div>
+            <div className="modal-actions">
+              <button onClick={() => setShowArchiveConfirm(false)} className="btn-secondary">
+                Cancel
+              </button>
+              <button onClick={handleArchive} className="btn-warning">
+                <Icons.archive className="w-4 h-4 mr-2" />
+                Archive Task
               </button>
             </div>
           </div>
