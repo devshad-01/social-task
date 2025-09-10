@@ -9,7 +9,6 @@ import { Input } from '../components/common/Input';
 import { Badge } from '../components/common/Badge';
 import { EmptyState } from '../components/common/EmptyState';
 import { TaskCard } from '../components/tasks/TaskCard';
-import { TaskModal } from '../components/tasks/TaskModal';
 import { TaskFilters } from '../components/tasks/TaskFilters';
 import { useTasks } from '../hooks/useTasks';
 import { NavigationContext } from '../context/NavigationContext';
@@ -17,7 +16,6 @@ import { Icons } from '../components/Icons';
 
 export const TasksPage = () => {
   const navigate = useNavigate();
-  const [selectedTask, setSelectedTask] = useState(null);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [advancedFilters, setAdvancedFilters] = useState({});
@@ -71,16 +69,7 @@ export const TasksPage = () => {
   }, [getTaskStats]);
 
   const handleTaskClick = (task) => {
-    setSelectedTask(task);
-  };
-
-  const handleUpdateTask = async (taskData) => {
-    try {
-      await updateTask(selectedTask._id, taskData);
-      setSelectedTask(null);
-    } catch (err) {
-      console.error('Error updating task:', err);
-    }
+    navigate(`/tasks/${task._id}`);
   };
 
   const handleCompleteTask = async (task) => {
@@ -248,7 +237,7 @@ export const TasksPage = () => {
               task={task}
               onClick={() => handleTaskClick(task)}
               onComplete={handleCompleteTask}
-              onEdit={() => setSelectedTask(task)}
+              onEdit={() => navigate(`/tasks/${task._id}`)}
             />
           ))}
         </div>
@@ -264,19 +253,6 @@ export const TasksPage = () => {
                 </Button>
               )
             }
-        />
-      )}
-
-      {/* Task Details Modal */}
-      {selectedTask && (
-        <TaskModal
-          isOpen={!!selectedTask}
-          onClose={() => setSelectedTask(null)}
-          onSave={handleUpdateTask}
-          onDelete={() => handleDeleteTask(selectedTask._id)}
-          task={selectedTask}
-          mode={isAdmin ? "edit" : "view"}
-          canDelete={isAdmin}
         />
       )}
     </div>

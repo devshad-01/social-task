@@ -245,3 +245,43 @@
     height: 100px;
   }
 }
+
+/* Profile Logout Section - Moved from mobile sidebar */
+.profile-logout-section {
+  margin-top: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background: var(--neutral-50);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--neutral-200);
+}
+
+.profile-logout-container {
+  margin-top: var(--spacing-base);
+}
+
+.profile-logout-button {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-base) var(--spacing-lg);
+  background: var(--red-50);
+  color: var(--red-700);
+  border: 1px solid var(--red-200);
+  border-radius: var(--radius-base);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: fit-content;
+}
+
+.profile-logout-button:hover {
+  background: var(--red-100);
+  border-color: var(--red-300);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-logout-button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}

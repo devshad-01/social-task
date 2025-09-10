@@ -1,21 +1,37 @@
 import React, { useContext } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTracker } from 'meteor/react-meteor-data';
+import { Meteor } from 'meteor/meteor';
 import { Icons } from '../Icons';
 import { NavigationContext } from '../../context/NavigationContext';
 
 export const MobileTopHeader = () => {
-  const { toggleMenu, unreadCount } = useContext(NavigationContext);
+  const { unreadCount } = useContext(NavigationContext);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Get current user for greeting
+  const user = useTracker(() => Meteor.user(), []);
 
   const handleNotificationClick = () => {
     navigate('/notifications');
   };
 
-  // Get page title based on current route
-  const getPageTitle = () => {
+  // Get greeting based on current route and time
+  const getGreeting = () => {
     const path = location.pathname;
-    if (path === '/') return 'Dashboard';
+    
+    // For dashboard, show personalized greeting
+    if (path === '/') {
+      const hour = new Date().getHours();
+      const userName = user?.profile?.firstName || user?.username || 'there';
+      
+      if (hour < 12) return `Good morning, ${userName}! ☀️`;
+      if (hour < 17) return `Good afternoon, ${userName}! 🌤️`;
+      return `Good evening, ${userName}! 🌙`;
+    }
+    
+    // For other pages, show page title
     if (path === '/tasks') return 'Tasks';
     if (path === '/clients') return 'Clients';
     if (path === '/profile') return 'Profile';
@@ -31,14 +47,7 @@ export const MobileTopHeader = () => {
   return (
     <header className="mobile-header mobile-header-enhanced safe-area-top">
       <div className="mobile-header-left">
-        <button
-          onClick={toggleMenu}
-          className="header-icon-button"
-          aria-label="Open menu"
-        >
-          <Icons.menu className="hamburger-icon" />
-        </button>
-        <h1 className="mobile-header-title">{getPageTitle()}</h1>
+        <h1 className="mobile-header-title mobile-header-greeting">{getGreeting()}</h1>
       </div>
 
       <div className="mobile-header-actions">

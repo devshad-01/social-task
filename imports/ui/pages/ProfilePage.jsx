@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import ProfileUpdateForm from '../components/profile/ProfileUpdateForm';
 import ChangePasswordForm from '../components/profile/ChangePasswordForm';
 import { Icons } from '../components/Icons';
 import { useAuthContext } from '../context/AuthContext';
+import { ResponsiveContext } from '../context/ResponsiveContext';
 import { WebPushService } from '../../api/notifications/webPush';
 import { Meteor } from 'meteor/meteor';
 
@@ -10,6 +11,7 @@ export const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [notificationPermission, setNotificationPermission] = useState(Notification.permission);
   const { user, isLoading, resendVerificationEmail } = useAuthContext();
+  const { isMobileOrTablet } = useContext(ResponsiveContext);
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: Icons.user },
@@ -80,175 +82,267 @@ export const ProfilePage = () => {
   }
 
   return (
-    <div className="profile-page">
-      {/* Header */}
-      <div className="profile-header">
-        <div>
-          <h1 className="profile-header-title">Profile</h1>
-          <p className="profile-header-subtitle">Manage your account details and preferences</p>
+    <div className={`profile-page-enhanced ${isMobileOrTablet ? 'mobile' : 'desktop'}`}>
+      {/* Mobile Header */}
+      {isMobileOrTablet && (
+        <div className="profile-mobile-header">
+          <div className="profile-user-summary">
+            <div className="profile-avatar-large">
+              {user?.profile?.avatar ? (
+                <img src={user.profile.avatar} alt={user?.profile?.fullName || 'User'} />
+              ) : (
+                <div className="avatar-placeholder">
+                  <span>{user?.profile?.fullName?.split(' ').map(n => n[0]).join('') || user?.username?.charAt(0)?.toUpperCase() || 'U'}</span>
+                </div>
+              )}
+            </div>
+            <div className="profile-user-details">
+              <h1 className="profile-name">{user?.profile?.fullName || user?.username || 'User'}</h1>
+              <p className="profile-email">{user?.emails?.[0]?.address}</p>
+              <div className="profile-badges">
+                <div className="profile-role-badge">
+                  <Icons.shield className="w-4 h-4" />
+                  <span>{user?.profile?.role || 'User'}</span>
+                </div>
+                {user?.emails?.[0]?.verified ? (
+                  <div className="profile-verified-badge">
+                    <Icons.checkCircle className="w-4 h-4" />
+                    <span>Verified</span>
+                  </div>
+                ) : (
+                  <div className="profile-unverified-badge">
+                    <Icons.alertTriangle className="w-4 h-4" />
+                    <span>Unverified</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Desktop Header */}
+      {!isMobileOrTablet && (
+        <div className="profile-header">
+          <div>
+            <h1 className="profile-header-title">Profile</h1>
+            <p className="profile-header-subtitle">Manage your account details and preferences</p>
+          </div>
+        </div>
+      )}
 
       {/* Tab Navigation */}
-      <div className="profile-tabs">
+      <div className={`profile-tabs-enhanced ${isMobileOrTablet ? 'mobile' : 'desktop'}`}>
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`profile-tab ${activeTab === tab.id ? 'active' : ''}`}
+            className={`profile-tab-enhanced ${activeTab === tab.id ? 'active' : ''}`}
           >
-            {React.createElement(tab.icon, { className: "profile-tab-icon" })}
-            <span>{tab.label}</span>
+            {React.createElement(tab.icon, { className: "profile-tab-icon-enhanced" })}
+            <span className="profile-tab-label">{tab.label}</span>
           </button>
         ))}
       </div>
 
       {/* Tab Content */}
-      <div className="profile-content">
+      <div className={`profile-content-enhanced ${isMobileOrTablet ? 'mobile' : 'desktop'}`}>
         {activeTab === 'profile' && (
-          <div>
-            <div className="profile-avatar-section">
-              <div className="profile-avatar">
-                {user?.profile?.avatar ? (
-                  <img src={user.profile.avatar} alt={user?.profile?.fullName || 'User'} />
-                ) : (
-                  <span>{user?.profile?.fullName?.split(' ').map(n => n[0]).join('') || 'U'}</span>
-                )}
-              </div>
-              <div className="profile-user-info">
-                <h2>{user?.profile?.fullName || 'User'}</h2>
-                <p>{user?.emails?.[0]?.address}</p>
-                <div className="profile-user-role">
-                  <Icons.shield className="profile-verification-icon" />
-                  {user?.profile?.role || 'User'} {user?.profile?.department ? `• ${user.profile.department}` : ''}
+          <div className="profile-tab-section">
+            {!isMobileOrTablet && (
+              <div className="profile-avatar-section-desktop">
+                <div className="profile-avatar">
+                  {user?.profile?.avatar ? (
+                    <img src={user.profile.avatar} alt={user?.profile?.fullName || 'User'} />
+                  ) : (
+                    <span>{user?.profile?.fullName?.split(' ').map(n => n[0]).join('') || 'U'}</span>
+                  )}
+                </div>
+                <div className="profile-user-info">
+                  <h2>{user?.profile?.fullName || 'User'}</h2>
+                  <p>{user?.emails?.[0]?.address}</p>
+                  <div className="profile-user-role">
+                    <Icons.shield className="profile-verification-icon" />
+                    {user?.profile?.role || 'User'} {user?.profile?.department ? `• ${user.profile.department}` : ''}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
             
-            <div className="profile-form-section">
-              <ProfileUpdateForm />
+            <div className="profile-form-section-enhanced">
+              <div className="profile-card">
+                <div className="profile-card-header">
+                  <h3>Personal Information</h3>
+                  <p>Update your basic profile details</p>
+                </div>
+                <ProfileUpdateForm />
+              </div>
             </div>
           </div>
         )}
 
         {activeTab === 'security' && (
-          <div>
-            <div className="profile-form-section">
-              <ChangePasswordForm />
+          <div className="profile-tab-section">
+            <div className="profile-form-section-enhanced">
+              <div className="profile-card">
+                <div className="profile-card-header">
+                  <h3>Change Password</h3>
+                  <p>Keep your account secure with a strong password</p>
+                </div>
+                <ChangePasswordForm />
+              </div>
             </div>
             
-            <div className="profile-verification-card">
-              <h3>Email Verification</h3>
+            <div className="profile-card">
+              <div className="profile-card-header">
+                <h3>Email Verification</h3>
+                <p>Verify your email address for account security</p>
+              </div>
               
               {user?.emails?.[0]?.verified ? (
-                <div className="profile-verification-status verified">
-                  <Icons.checkCircle className="profile-verification-icon" />
-                  <span>Your email is verified</span>
+                <div className="profile-status-section verified">
+                  <div className="profile-status-indicator">
+                    <Icons.checkCircle className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div className="profile-status-content">
+                    <h4>Email Verified</h4>
+                    <p>Your email address has been successfully verified</p>
+                  </div>
                 </div>
               ) : (
-                <div>
-                  <div className="profile-verification-status unverified">
-                    <Icons.alertTriangle className="profile-verification-icon" />
-                    <span>Your email is not verified</span>
+                <div className="profile-status-section unverified">
+                  <div className="profile-status-indicator">
+                    <Icons.alertTriangle className="w-6 h-6 text-amber-600" />
                   </div>
-                  <button
-                    onClick={() => resendVerificationEmail()}
-                    className="profile-button-primary"
-                  >
-                    <Icons.mail className="profile-verification-icon" />
-                    Resend Verification Email
-                  </button>
+                  <div className="profile-status-content">
+                    <h4>Email Not Verified</h4>
+                    <p>Please verify your email address to secure your account</p>
+                    <button
+                      onClick={() => resendVerificationEmail()}
+                      className="profile-action-button primary"
+                    >
+                      <Icons.mail className="w-4 h-4" />
+                      Resend Verification Email
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
 
-            <div className="profile-verification-card" style={{ marginTop: 'var(--spacing-lg)' }}>
-              <h3>Account Actions</h3>
-              <button
-                onClick={handleLogout}
-                className="profile-button-primary"
-                style={{ background: 'var(--status-error)' }}
-              >
-                <Icons.logout className="profile-verification-icon" />
-                Sign Out
-              </button>
+            <div className="profile-card">
+              <div className="profile-card-header">
+                <h3>Account Actions</h3>
+                <p>Manage your session and account</p>
+              </div>
+              <div className="profile-action-section">
+                <button
+                  onClick={handleLogout}
+                  className="profile-action-button danger"
+                >
+                  <Icons.logout className="w-4 h-4" />
+                  Sign Out
+                </button>
+              </div>
             </div>
           </div>
         )}
 
         {activeTab === 'notifications' && (
-          <div>
-            <div className="profile-verification-card">
-              <h3>Browser Notifications</h3>
-              <p className="mb-4 text-gray-600">Get instant notifications for task assignments, updates, and other important activities.</p>
-              
-              <div className="profile-verification-status">
-                <Icons.bell className="profile-verification-icon" />
-                <span>
-                  Status: {notificationPermission === 'granted' 
-                    ? 'Enabled' 
-                    : notificationPermission === 'denied' 
-                    ? 'Blocked' 
-                    : 'Not Set'
-                  }
-                </span>
+          <div className="profile-tab-section">
+            <div className="profile-card">
+              <div className="profile-card-header">
+                <h3>Browser Notifications</h3>
+                <p>Get instant notifications for task assignments and updates</p>
               </div>
-
-              <div className="flex gap-3 mt-4">
-                {notificationPermission !== 'granted' && (
-                  <button
-                    onClick={handleEnableNotifications}
-                    className="profile-button-primary"
-                  >
-                    <Icons.bell className="profile-verification-icon" />
-                    Enable Notifications
-                  </button>
-                )}
-                
-                {notificationPermission === 'granted' && (
-                  <button
-                    onClick={handleTestNotification}
-                    className="profile-button-primary"
-                    style={{ background: 'var(--primary-600)' }}
-                  >
-                    <Icons.send className="profile-verification-icon" />
-                    Send Test Notification
-                  </button>
-                )}
+              
+              <div className="profile-status-section">
+                <div className="profile-status-indicator">
+                  <Icons.bell className={`w-6 h-6 ${
+                    notificationPermission === 'granted' ? 'text-green-600' : 
+                    notificationPermission === 'denied' ? 'text-red-600' : 'text-gray-600'
+                  }`} />
+                </div>
+                <div className="profile-status-content">
+                  <h4>Notification Status</h4>
+                  <p>
+                    {notificationPermission === 'granted' 
+                      ? 'Notifications are enabled and working' 
+                      : notificationPermission === 'denied' 
+                      ? 'Notifications are blocked by your browser' 
+                      : 'Notifications are not set up yet'
+                    }
+                  </p>
+                  
+                  <div className="profile-action-group">
+                    {notificationPermission !== 'granted' && (
+                      <button
+                        onClick={handleEnableNotifications}
+                        className="profile-action-button primary"
+                      >
+                        <Icons.bell className="w-4 h-4" />
+                        Enable Notifications
+                      </button>
+                    )}
+                    
+                    {notificationPermission === 'granted' && (
+                      <button
+                        onClick={handleTestNotification}
+                        className="profile-action-button secondary"
+                      >
+                        <Icons.zap className="w-4 h-4" />
+                        Send Test Notification
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {notificationPermission === 'denied' && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-800 text-sm">
-                    Notifications are blocked. To enable them, click the lock icon in your browser's address bar and allow notifications.
-                  </p>
+                <div className="profile-alert danger">
+                  <Icons.alertTriangle className="w-5 h-5" />
+                  <div>
+                    <h4>Notifications Blocked</h4>
+                    <p>To enable notifications, click the lock icon in your browser's address bar and allow notifications.</p>
+                  </div>
                 </div>
               )}
             </div>
 
-            <div className="profile-verification-card" style={{ marginTop: 'var(--spacing-lg)' }}>
-              <h3>Notification Preferences</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="font-medium">Task Assignments</label>
-                    <p className="text-sm text-gray-600">Notify when tasks are assigned to you</p>
+            <div className="profile-card">
+              <div className="profile-card-header">
+                <h3>Notification Preferences</h3>
+                <p>Choose what notifications you want to receive</p>
+              </div>
+              
+              <div className="profile-preferences">
+                <div className="profile-preference-item">
+                  <div className="profile-preference-content">
+                    <h4>Task Assignments</h4>
+                    <p>Notify when tasks are assigned to you</p>
                   </div>
-                  <input type="checkbox" defaultChecked className="form-checkbox" />
+                  <div className="profile-preference-toggle">
+                    <input type="checkbox" defaultChecked className="toggle-switch" />
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="font-medium">Task Completions</label>
-                    <p className="text-sm text-gray-600">Notify when assigned tasks are completed</p>
+                
+                <div className="profile-preference-item">
+                  <div className="profile-preference-content">
+                    <h4>Task Completions</h4>
+                    <p>Notify when assigned tasks are completed</p>
                   </div>
-                  <input type="checkbox" defaultChecked className="form-checkbox" />
+                  <div className="profile-preference-toggle">
+                    <input type="checkbox" defaultChecked className="toggle-switch" />
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="font-medium">Due Date Reminders</label>
-                    <p className="text-sm text-gray-600">Notify about upcoming due dates</p>
+                
+                <div className="profile-preference-item">
+                  <div className="profile-preference-content">
+                    <h4>Due Date Reminders</h4>
+                    <p>Notify about upcoming due dates</p>
                   </div>
-                  <input type="checkbox" defaultChecked className="form-checkbox" />
+                  <div className="profile-preference-toggle">
+                    <input type="checkbox" defaultChecked className="toggle-switch" />
+                  </div>
                 </div>
               </div>
             </div>

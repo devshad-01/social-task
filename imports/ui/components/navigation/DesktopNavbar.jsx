@@ -4,6 +4,7 @@ import { Icons } from '../Icons';
 import { NavigationContext } from '../../context/NavigationContext';
 import { NotificationBell } from '../notifications/NotificationBell';
 import { UserMenu } from './UserMenu';
+import { useRole } from '../../hooks/useRole';
 
 export const DesktopNavbar = () => {
   const { 
@@ -17,14 +18,17 @@ export const DesktopNavbar = () => {
     markAllNotificationsAsRead,
     canCreateTasks
   } = useContext(NavigationContext);
+  const { isAdmin } = useRole();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const navigate = useNavigate();
 
-  // Filter navigation items for desktop navbar
-  const mainNavItems = navigationItems.filter(item => 
-    ['dashboard', 'tasks', 'clients', 'team', 'analytics','posts'].includes(item.id)
-  );
+  // Filter navigation items for desktop navbar based on role
+  const mainNavItems = navigationItems.filter(item => {
+    const adminOnlyPages = ['clients', 'team', 'analytics', 'posts'];
+    // Show all pages to admin, hide admin-only pages from team members
+    return isAdmin || !adminOnlyPages.includes(item.id);
+  });
 
   const handleNotificationClick = (notification) => {
     if (notification.actionUrl) {

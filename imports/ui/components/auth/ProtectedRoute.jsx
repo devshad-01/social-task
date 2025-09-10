@@ -1,12 +1,15 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthContext } from '../../context/AuthContext';
+import { useRole } from '../../hooks/useRole';
 
 /**
  * A wrapper component that redirects to the login page if the user is not authenticated
+ * and enforces role-based access control
  */
-export const ProtectedRoute = ({ children }) => {
+export const ProtectedRoute = ({ children, requiredRole = null, adminOnly = false }) => {
   const { isAuthenticated, isLoading } = useAuthContext();
+  const { isAdmin, isTeamMember, hasRole } = useRole();
   const location = useLocation();
   
   if (isLoading) {
@@ -24,6 +27,15 @@ export const ProtectedRoute = ({ children }) => {
   if (!isAuthenticated) {
     // Redirect to login page but save the attempted location
     return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // Role-based access control
+  if (adminOnly && !isAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (requiredRole && !hasRole(requiredRole)) {
+    return <Navigate to="/dashboard" replace />;
   }
   
   return children;

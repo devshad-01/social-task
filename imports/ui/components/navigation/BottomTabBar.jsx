@@ -2,37 +2,48 @@ import React, { useContext, useState } from 'react';
 import { Icons } from '../Icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { NavigationContext } from '../../context/NavigationContext';
+import { useRole } from '../../hooks/useRole';
 
 export const BottomTabBar = () => {
   const { navigationItems, activeTab, setActiveTab, canCreateTasks } = useContext(NavigationContext);
+  const { isAdmin } = useRole();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showMoreModal, setShowMoreModal] = useState(false);
   const navigate = useNavigate();
   
   // Filter and reorder navigation items for bottom bar
-  // For admin: dashboard, tasks, clients, profile (with add button)
-  // For user: dashboard, tasks, clients, profile (no add button)
+  // For admin: dashboard, tasks, profile, more (with add button)
+  // For user: dashboard, tasks, profile, more (no add button)
   const getOrderedTabs = () => {
     const allTabs = navigationItems.filter(item => 
-      ['dashboard', 'tasks', 'clients', 'profile'].includes(item.id)
+      ['dashboard', 'tasks', 'profile'].includes(item.id)
     );
     
-    // Reorder: clients and profile swapped for admin layout
+    // Add More tab for accessing additional features
+    const moreTab = {
+      id: 'more',
+      label: 'More',
+      icon: 'more',
+      path: '#',
+      onClick: () => setShowMoreModal(true)
+    };
+    
+    // Reorder: dashboard, tasks on left; profile, more on right
     const dashboard = allTabs.find(item => item.id === 'dashboard');
     const tasks = allTabs.find(item => item.id === 'tasks');
-    const clients = allTabs.find(item => item.id === 'clients');
     const profile = allTabs.find(item => item.id === 'profile');
     
     if (canCreateTasks) {
-      // For admin: dashboard, tasks, [add button], clients, profile
+      // For admin: dashboard, tasks, [add button], profile, more
       return {
         leftTabs: [dashboard, tasks].filter(Boolean),
-        rightTabs: [clients, profile].filter(Boolean)
+        rightTabs: [profile, moreTab].filter(Boolean)
       };
     } else {
-      // For user: dashboard, tasks, clients, profile (no add button)
+      // For user: dashboard, tasks, profile, more (no add button)
       return {
         leftTabs: [dashboard, tasks].filter(Boolean),
-        rightTabs: [clients, profile].filter(Boolean)
+        rightTabs: [profile, moreTab].filter(Boolean)
       };
     }
   };
@@ -102,6 +113,24 @@ export const BottomTabBar = () => {
             const isActive = activeTab === item.id;
             const hasNotificationBadge = item.badge && item.badge > 0;
 
+            // Handle More tab differently
+            if (item.id === 'more') {
+              return (
+                <button
+                  key={item.id}
+                  onClick={item.onClick}
+                  className="bottom-tab-item"
+                >
+                  <div className="bottom-tab-icon-wrapper">
+                    <Icon className="bottom-tab-icon" />
+                  </div>
+                  <span className="bottom-tab-label">
+                    {item.label}
+                  </span>
+                </button>
+              );
+            }
+
             return (
               <Link
                 key={item.id}
@@ -155,6 +184,84 @@ export const BottomTabBar = () => {
             </div>
             <button
               onClick={() => setShowAddModal(false)}
+              className="w-full mt-4 p-2 text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* More Modal */}
+      {showMoreModal && (
+        <div className="sidebar-backdrop animate-fade-in z-50 flex items-center justify-center">
+          {/* Overlay click closes modal */}
+          <div className="backdrop-overlay" onClick={() => setShowMoreModal(false)} />
+          <div className="bg-white rounded-xl p-6 m-4 max-w-sm w-full relative z-10 shadow-2xl animate-scale-in">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">
+              More Options
+            </h3>
+            <div className="space-y-3">
+              {/* Admin-only options */}
+              {isAdmin && (
+                <>
+                  <button
+                    onClick={() => {
+                      setShowMoreModal(false);
+                      navigate('/clients');
+                    }}
+                    className="w-full flex items-center gap-3 p-4 rounded-lg transition-all duration-200 bg-purple-50 hover:bg-purple-100 text-purple-700 hover:scale-105"
+                  >
+                    <Icons.building className="w-5 h-5 text-purple-600" />
+                    <span className="font-medium">Clients</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowMoreModal(false);
+                      navigate('/analytics');
+                    }}
+                    className="w-full flex items-center gap-3 p-4 rounded-lg transition-all duration-200 bg-green-50 hover:bg-green-100 text-green-700 hover:scale-105"
+                  >
+                    <Icons.chart className="w-5 h-5 text-green-600" />
+                    <span className="font-medium">Analytics</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowMoreModal(false);
+                      navigate('/team');
+                    }}
+                    className="w-full flex items-center gap-3 p-4 rounded-lg transition-all duration-200 bg-blue-50 hover:bg-blue-100 text-blue-700 hover:scale-105"
+                  >
+                    <Icons.users className="w-5 h-5 text-blue-600" />
+                    <span className="font-medium">Team</span>
+                  </button>
+                </>
+              )}
+              
+              {/* Available to all users */}
+              <button
+                onClick={() => {
+                  setShowMoreModal(false);
+                  navigate('/notifications');
+                }}
+                className="w-full flex items-center gap-3 p-4 rounded-lg transition-all duration-200 bg-orange-50 hover:bg-orange-100 text-orange-700 hover:scale-105"
+              >
+                <Icons.bell className="w-5 h-5 text-orange-600" />
+                <span className="font-medium">Notifications</span>
+              </button>
+              <button
+                onClick={() => {
+                  setShowMoreModal(false);
+                  navigate('/settings');
+                }}
+                className="w-full flex items-center gap-3 p-4 rounded-lg transition-all duration-200 bg-gray-50 hover:bg-gray-100 text-gray-700 hover:scale-105"
+              >
+                <Icons.settings className="w-5 h-5 text-gray-600" />
+                <span className="font-medium">Settings</span>
+              </button>
+            </div>
+            <button
+              onClick={() => setShowMoreModal(false)}
               className="w-full mt-4 p-2 text-gray-500 hover:text-gray-700 transition-colors"
             >
               Cancel

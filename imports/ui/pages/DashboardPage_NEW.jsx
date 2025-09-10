@@ -4,9 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/alanning:roles';
 import { TaskModal } from '../components/tasks/TaskModal';
-import { TasksCollection } from '../../api/posts/PostsCollections';
-import { Mongo } from 'meteor/mongo';
-import { useRole } from '../hooks/useRole';
+import { useTasks } from '../hooks/useTasks';
 import { NavigationContext } from '../context/NavigationContext';
 import { Icons } from '../components/Icons';
 
@@ -68,94 +66,33 @@ const TaskRow = ({ task, onView, isExpanded, onToggle }) => {
   const getPriorityIcon = (priority) => {
     switch (priority) {
       case 'high':
-        return <Icons.alert className="w-4 h-4 text-red-500" />;
+        return <Icons.alert className="w-5 h-5 text-red-500" />;
       case 'medium':
-        return <Icons.clock className="w-4 h-4 text-amber-500" />;
+        return <Icons.clock className="w-5 h-5 text-amber-500" />;
       default:
-        return <Icons.clipboard className="w-4 h-4 text-blue-500" />;
+        return <Icons.clipboard className="w-5 h-5 text-blue-500" />;
     }
   };
 
   return (
     <div className="task-row">
       <div className="task-row-main" onClick={() => onView(task)}>
-        <div className="flex items-center space-x-3 flex-1">
-          <div className="task-icon">
-            {getPriorityIcon(task.priority)}
-          </div>
-          <div className="task-content flex-1">
-            <div className="flex items-center justify-between">
-              <h4 className="task-title text-sm font-medium text-gray-900">{task.title}</h4>
-              <span className={`text-xs px-2 py-1 rounded-full ${
-                task.priority === 'high' ? 'bg-red-100 text-red-800' :
-                task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-green-100 text-green-800'
-              }`}>
-                {task.priority}
-              </span>
-            </div>
-            <p className="task-subtitle text-xs text-gray-600 mt-1 line-clamp-1">{task.description}</p>
-            
-            {/* User avatars and client info */}
-            <div className="flex items-center justify-between mt-2">
-              <div className="flex items-center space-x-2">
-                {task.client && (
-                  <div className="flex items-center space-x-1">
-                    <div className="w-4 h-4 rounded bg-gray-200 flex items-center justify-center text-xs">
-                      {task.client.name.charAt(0)}
-                    </div>
-                    <span className="text-xs text-gray-500">{task.client.name}</span>
-                  </div>
-                )}
-                
-                {task.assignees && task.assignees.length > 0 && (
-                  <div className="flex items-center space-x-1">
-                    <div className="flex -space-x-1">
-                      {task.assignees.slice(0, 2).map((assignee) => (
-                        <div 
-                          key={assignee._id} 
-                          className="w-6 h-6 rounded-full bg-gray-200 border border-white flex items-center justify-center text-xs font-medium text-gray-600 overflow-hidden"
-                          title={assignee.profile?.firstName ? `${assignee.profile.firstName} ${assignee.profile.lastName}` : assignee.emails?.[0]?.address || 'Unknown User'}
-                        >
-                          {assignee.profile?.avatar ? (
-                            <img 
-                              src={assignee.profile.avatar} 
-                              alt={assignee.profile?.firstName || 'User'} 
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span>
-                              {assignee.profile?.firstName?.charAt(0)?.toUpperCase() || 
-                               assignee.emails?.[0]?.address?.charAt(0)?.toUpperCase() || '?'}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                      {task.assignees.length > 2 && (
-                        <div className="w-6 h-6 rounded-full bg-gray-100 border border-white flex items-center justify-center text-xs font-medium text-gray-500">
-                          +{task.assignees.length - 2}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <span className="text-xs text-gray-500">
-                {new Date(task.dueDate).toLocaleDateString()}
-              </span>
-            </div>
-          </div>
+        <div className="task-icon">
+          {getPriorityIcon(task.priority)}
+        </div>
+        <div className="task-content">
+          <h4 className="task-title">{task.title}</h4>
+          <p className="task-subtitle">{task.description}</p>
         </div>
         <button 
-          className="task-arrow ml-2"
+          className="task-arrow"
           onClick={(e) => {
             e.stopPropagation();
             onToggle(task._id);
           }}
         >
           <Icons.chevronDown 
-            className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
+            className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
           />
         </button>
       </div>
@@ -230,89 +167,20 @@ export const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const navigate = useNavigate();
   const { canCreateTasks, unreadCount } = useContext(NavigationContext);
-  const { isAdmin, isTeamMember } = useRole();
 
-  const { user, tasks, clients, users, loading, error } = useTracker(() => {
-    const tasksHandle = Meteor.subscribe('tasks.all');
-    const usersHandle = Meteor.subscribe('users.all');
-    const clientsHandle = Meteor.subscribe('clients.all');
-    
-    const loading = !tasksHandle.ready() || !usersHandle.ready() || !clientsHandle.ready();
-    
-    return {
-      user: Meteor.user(),
-      tasks: TasksCollection.find({}, { sort: { createdAt: -1 } }).fetch(),
-      clients: Mongo.Collection.get('clients')?.find({}).fetch() || [],
-      users: Meteor.users.find({}).fetch(),
-      loading,
-      error: null
-    };
-  }, []);
+  const { user } = useTracker(() => ({
+    user: Meteor.user()
+  }), []);
 
-  // Function to enhance tasks with user and client data
-  const enhanceTasksWithUsers = (tasks) => {
-    return tasks.map(task => {
-      const enhancedTask = { ...task };
-      
-      // Add client data
-      if (task.clientId) {
-        enhancedTask.client = clients.find(client => client._id === task.clientId);
-      }
-      
-      // Add assignee user data
-      if (task.assigneeIds && task.assigneeIds.length > 0) {
-        enhancedTask.assignees = task.assigneeIds
-          .map(assigneeId => users.find(user => user._id === assigneeId))
-          .filter(Boolean);
-      }
-      
-      return enhancedTask;
-    });
-  };
+  const isAdmin = user && Roles.userIsInRole(user._id, ['admin', 'supervisor']);
 
-  // Get enhanced tasks with user data
-  const enhancedTasks = useMemo(() => {
-    if (!tasks || !users || !clients) return [];
-    return enhanceTasksWithUsers(tasks);
-  }, [tasks, users, clients]);
-
-  // Filter tasks based on role
-  const roleFilteredTasks = useMemo(() => {
-    if (!user || !enhancedTasks) return [];
-    
-    if (isAdmin) {
-      // Admins can see all tasks
-      return enhancedTasks;
-    } else if (isTeamMember) {
-      // Team members only see tasks assigned to them
-      return enhancedTasks.filter(task => 
-        task.assigneeIds && task.assigneeIds.includes(user._id)
-      );
-    }
-    
-    return [];
-  }, [enhancedTasks, user, isAdmin, isTeamMember]);
-
-  const filteredTasks = useMemo(() => {
-    if (!searchQuery) return roleFilteredTasks;
-    return roleFilteredTasks.filter(task => 
-      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      task.description.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [roleFilteredTasks, searchQuery]);
-
-  const stats = useMemo(() => {
-    const completedTasks = roleFilteredTasks.filter(task => task.status === 'completed');
-    const inProgressTasks = roleFilteredTasks.filter(task => task.status === 'in_progress');
-    const pendingTasks = roleFilteredTasks.filter(task => task.status === 'pending');
-    
-    return {
-      total: roleFilteredTasks.length,
-      completed: completedTasks.length,
-      inProgress: inProgressTasks.length,
-      pending: pendingTasks.length
-    };
-  }, [roleFilteredTasks]);
+  const { 
+    tasks,
+    loading,
+    error,
+    updateStatus,
+    getTaskStats 
+  } = useTasks();
 
   // Mock projects data - replace with real data from your API
   const projects = useMemo(() => [
@@ -357,6 +225,24 @@ export const DashboardPage = () => {
     }
   ], []);
 
+  const filteredTasks = useMemo(() => {
+    if (!searchQuery) return tasks;
+    return tasks.filter(task => 
+      task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      task.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [tasks, searchQuery]);
+
+  const stats = useMemo(() => {
+    const taskStats = getTaskStats();
+    return {
+      total: tasks.length,
+      completed: taskStats.completed,
+      inProgress: taskStats.in_progress,
+      pending: taskStats.pending
+    };
+  }, [tasks, getTaskStats]);
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
@@ -373,7 +259,8 @@ export const DashboardPage = () => {
   });
 
   const handleTaskView = (task) => {
-    navigate(`/tasks/${task._id}`);
+    setSelectedTask(task);
+    setIsTaskModalOpen(true);
   };
 
   const handleProjectClick = (project) => {
@@ -537,6 +424,19 @@ export const DashboardPage = () => {
 
       {/* Bottom Navigation */}
       <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+
+      {/* Task Details Modal */}
+      {selectedTask && (
+        <TaskModal
+          isOpen={isTaskModalOpen}
+          onClose={() => {
+            setIsTaskModalOpen(false);
+            setSelectedTask(null);
+          }}
+          task={selectedTask}
+          readOnly={true}
+        />
+      )}
     </div>
   );
 };
