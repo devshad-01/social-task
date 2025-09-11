@@ -41,8 +41,9 @@ Meteor.methods({
         description: Match.Optional(String),
         priority: Match.Optional(String),
         status: Match.Optional(String),
-        dueDate: Match.Optional(Date),
-        clientId: Match.Optional(String),
+        dueDate: Match.Optional(Match.OneOf(Date, null)),
+        scheduledAt: Match.Optional(Match.OneOf(Date, null)),
+        clientId: Match.Optional(Match.OneOf(String, null)),
         assigneeIds: Match.Optional([String]),
         socialAccountIds: Match.Optional([String]),
         attachments: Match.Optional([Object]),
@@ -84,6 +85,7 @@ Meteor.methods({
         priority: taskData.priority || 'medium',
         status: taskData.status || 'draft',
         dueDate: taskData.dueDate || null,
+        scheduledAt: taskData.scheduledAt || null,
         clientId: taskData.clientId || null,
         assigneeIds: taskData.assigneeIds || [],
         socialAccountIds: taskData.socialAccountIds || [],
@@ -92,7 +94,8 @@ Meteor.methods({
         comments: [],
         createdBy: this.userId,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        isScheduled: taskData.status === 'scheduled' // Mark scheduled tasks
       };
 
       console.log('[SERVER] tasks.insert] Inserting task with data:', taskDoc);
@@ -102,24 +105,30 @@ Meteor.methods({
 
       console.log('[SERVER] tasks.insert] Task created with ID:', taskId);
 
-      // Send notifications to assignees if task is assigned
+      // Send notifications to assignees (only for non-draft, non-scheduled tasks)
       if (taskData.assigneeIds && taskData.assigneeIds.length > 0) {
-        console.log('[SERVER] tasks.insert] Sending notifications to assignees:', taskData.assigneeIds);
-        console.log('[SERVER] tasks.insert] Debug - taskId:', taskId);
-        console.log('[SERVER] tasks.insert] Debug - taskData.title:', taskData.title);
-        console.log('[SERVER] tasks.insert] Debug - this.userId:', this.userId);
-        console.log('[SERVER] tasks.insert] Debug - assigneeIds:', taskData.assigneeIds);
-        try {
-          await Meteor.callAsync('notifications.taskAssigned', {
-            taskId,
-            taskTitle: taskData.title,
-            assignedBy: this.userId,
-            assigneeIds: taskData.assigneeIds
-          });
-          console.log('[SERVER] tasks.insert] Notifications sent successfully');
-        } catch (error) {
-          console.error('[SERVER] tasks.insert] Failed to send task assignment notifications:', error);
-          // Don't fail the task creation if notification fails
+        console.log('[SERVER] tasks.insert] Processing notifications for status:', taskData.status);
+        
+        if (taskData.status === 'scheduled') {
+          console.log('[SERVER] tasks.insert] Scheduled task created - notifications will be sent when task becomes active');
+        } else if (taskData.status === 'draft') {
+          console.log('[SERVER] tasks.insert] Draft task created - no notifications sent');
+        } else {
+          console.log('[SERVER] tasks.insert] Sending immediate notifications to assignees:', taskData.assigneeIds);
+          try {
+            await Meteor.callAsync('notifications.taskAssigned', {
+              taskId,
+              taskTitle: taskData.title,
+              assignedBy: this.userId,
+              assigneeIds: taskData.assigneeIds,
+              dueDate: taskData.dueDate,
+              ttlMinutes: 15 // 15-minute relevance window
+            });
+            console.log('[SERVER] tasks.insert] Notifications sent successfully');
+          } catch (error) {
+            console.error('[SERVER] tasks.insert] Failed to send task assignment notifications:', error);
+            // Don't fail the task creation if notification fails
+          }
         }
       }
 
@@ -140,8 +149,9 @@ Meteor.methods({
       description: Match.Optional(String),
       priority: Match.Optional(String),
       status: Match.Optional(String),
-      dueDate: Match.Optional(Date),
-      clientId: Match.Optional(String),
+      dueDate: Match.Optional(Match.OneOf(Date, null)),
+      scheduledAt: Match.Optional(Match.OneOf(Date, null)),
+      clientId: Match.Optional(Match.OneOf(String, null)),
       assigneeIds: Match.Optional([String]),
       socialAccountIds: Match.Optional([String]),
       attachments: Match.Optional([Object]),
@@ -398,5 +408,77 @@ Meteor.methods({
     }
 
     return true;
+  },
+
+  /**
+   * Get overdue tasks for current user or all if admin
+   */
+  async 'tasks.getOverdue'() {
+    if (!this.userId) {
+      throw new Meteor.Error('unauthorized', 'Must be logged in');
+    }
+
+    try {
+      const isAdmin = await isUserInRole(this.userId, ['admin', 'supervisor']);
+      const now = new Date();
+      
+      let query = {
+        dueDate: { $lt: now },
+        status: { $ne: 'completed' }
+      };
+      
+      // If not admin, only show tasks assigned to this user
+      if (!isAdmin) {
+        query.assigneeIds = this.userId;
+      }
+      
+      const overdueTasks = await Tasks.find(query).fetchAsync();
+      console.log(`[tasks.getOverdue] Found ${overdueTasks.length} overdue tasks for user ${this.userId}`);
+      
+      return overdueTasks;
+    } catch (error) {
+      console.error('[tasks.getOverdue] Error:', error);
+      throw new Meteor.Error('server-error', 'Failed to fetch overdue tasks');
+    }
+  },
+
+  /**
+   * Create a test overdue task (admin only)
+   */
+  async 'tasks.createTestOverdue'() {
+    if (!this.userId) {
+      throw new Meteor.Error('unauthorized', 'Must be logged in');
+    }
+
+    try {
+      const isAdmin = await isUserInRole(this.userId, ['admin', 'supervisor']);
+      if (!isAdmin) {
+        throw new Meteor.Error('unauthorized', 'Admin access required');
+      }
+
+      // Create a task that's 2 days overdue
+      const twoDaysAgo = new Date();
+      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
+      const taskData = {
+        title: 'Test Overdue Task',
+        description: 'This is a test task that is overdue for testing notifications',
+        priority: 'high',
+        status: 'in-progress',
+        dueDate: twoDaysAgo,
+        assigneeIds: [this.userId],
+        createdBy: this.userId,
+        createdAt: new Date(),
+        tags: ['test', 'overdue']
+      };
+
+      const taskId = await Tasks.insertAsync(taskData);
+      console.log(`[tasks.createTestOverdue] Created test overdue task: ${taskId}`);
+      
+      return { taskId, dueDate: twoDaysAgo };
+    } catch (error) {
+      console.error('[tasks.createTestOverdue] Error:', error);
+      throw new Meteor.Error('server-error', 'Failed to create test overdue task');
+    }
   }
 });

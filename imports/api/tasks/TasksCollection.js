@@ -31,6 +31,10 @@ const TaskSchema = new SimpleSchema({
     type: Date,
     optional: true
   },
+  scheduledAt: {
+    type: Date,
+    optional: true
+  },
   clientId: {
     type: String,
     optional: true

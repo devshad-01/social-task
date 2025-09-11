@@ -76,7 +76,8 @@ export const EditTaskPage = () => {
       setFormData({
         title: task.title || '',
         description: task.description || '',
-        dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
+        dueDate: task.dueDate ? new Date(task.dueDate).toISOString().slice(0, 16) : '',
+        scheduledAt: task.scheduledAt ? new Date(task.scheduledAt).toISOString().slice(0, 16) : '',
         clientId: task.clientId || '',
         assigneeIds: task.assigneeIds || [],
         socialAccountIds: task.socialAccountIds || [],
@@ -160,7 +161,8 @@ export const EditTaskPage = () => {
       const updateData = {
         title: formData.title,
         description: formData.description,
-        dueDate: new Date(formData.dueDate),
+        dueDate: formData.dueDate ? new Date(formData.dueDate) : null,
+        scheduledAt: formData.scheduledAt ? new Date(formData.scheduledAt) : null,
         clientId: formData.clientId,
         assigneeIds: formData.assigneeIds,
         socialAccountIds: formData.socialAccountIds,
@@ -293,17 +295,40 @@ export const EditTaskPage = () => {
                   />
                 </div>
 
+                {formData.status === 'scheduled' && (
+                  <div className="form-group">
+                    <label htmlFor="scheduledAt">🕐 Execute At *</label>
+                    <Input
+                      id="scheduledAt"
+                      name="scheduledAt"
+                      type="datetime-local"
+                      value={formData.scheduledAt}
+                      onChange={handleInputChange}
+                      error={errors.scheduledAt}
+                      required={formData.status === 'scheduled'}
+                    />
+                    <p className="text-sm text-gray-600 mt-1">
+                      When should this task be activated and notifications sent?
+                    </p>
+                  </div>
+                )}
+
                 <div className="form-group">
-                  <label htmlFor="dueDate">Due Date *</label>
+                  <label htmlFor="dueDate">{formData.status === 'scheduled' ? '🏁 Due Date (Optional)' : 'Due Date *'}</label>
                   <Input
                     id="dueDate"
                     name="dueDate"
-                    type="date"
+                    type="datetime-local"
                     value={formData.dueDate}
                     onChange={handleInputChange}
                     error={errors.dueDate}
-                    required
+                    required={formData.status !== 'scheduled'}
                   />
+                  {formData.status === 'scheduled' && (
+                    <p className="text-sm text-gray-600 mt-1">
+                      Optional: When should this task be completed?
+                    </p>
+                  )}
                 </div>
               </div>
 
