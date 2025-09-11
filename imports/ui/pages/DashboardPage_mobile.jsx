@@ -85,7 +85,12 @@ const TaskRow = ({ task, onView, isExpanded, onToggle }) => {
           </div>
           <div className="task-content flex-1">
             <div className="flex items-center justify-between">
-              <h4 className="task-title text-sm font-medium text-gray-900">{task.title}</h4>
+              <h4 className="task-title text-sm font-medium text-gray-900">
+                {task.title}
+                {task.status === 'scheduled' && (
+                  <span className="scheduled-indicator">📅</span>
+                )}
+              </h4>
               <span className={`text-xs px-2 py-1 rounded-full ${
                 task.priority === 'high' ? 'bg-red-100 text-red-800' :
                 task.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :

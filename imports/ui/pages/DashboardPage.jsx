@@ -124,7 +124,12 @@ const TaskRow = ({ task, onView, isExpanded, onToggle }) => {
         
         <div className="task-content">
           <div className="task-main-info">
-            <h4 className="task-title">{task.title}</h4>
+            <h4 className="task-title">
+              {task.title}
+              {task.status === 'scheduled' && (
+                <span className="scheduled-indicator">📅</span>
+              )}
+            </h4>
             <span className={`task-priority-mini task-priority-${task.priority}`}>
               {task.priority}
             </span>
@@ -207,7 +212,18 @@ const TaskRow = ({ task, onView, isExpanded, onToggle }) => {
             <div className="task-detail-item">
               <span className="task-detail-label">Status:</span>
               <span className={`task-status task-status-${task.status}`}>
-                {task.status.replace('_', ' ')}
+                {task.status === 'scheduled' ? (
+                  <>
+                    📅 Scheduled
+                    {task.scheduledAt && (
+                      <span className="scheduled-time">
+                        {' '}({new Date(task.scheduledAt).toLocaleString()})
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  task.status.replace('_', ' ')
+                )}
               </span>
             </div>
             <div className="task-detail-item">
