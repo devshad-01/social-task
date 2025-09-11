@@ -1,103 +1,284 @@
-# 🚀 Posty - Social Media & Task Management PWA
+# 🚀 Posty - Social Media Task Management Platform
 
-## 📋 **What This App Does**
+> **Live Demo**: [posty.meteorapp.com](https://posty.meteorapp.com)
 
-**Posty** is a comprehensive **Task Management & Social Media Scheduling Platform** designed for digital agencies and teams. It combines:
+**Posty** is a comprehensive **Task Management & Social Media Scheduling Platform** designed for digital agencies and teams managing multiple client social media accounts. Built with Meteor 3.0, React 18, and modern PWA technologies.
 
-- 📋 **Task Management**: Create, assign, and track tasks with priorities, due dates, and attachments
-- 👥 **Client Management**: Organize work by clients with contact information and projects
-- 📱 **Social Media Integration**: Schedule and post to Facebook/Instagram directly from the app
-- 🔔 **Real-time Notifications**: Push notifications for task updates and deadlines
-- 📱 **PWA Support**: Works offline and can be installed as a mobile app
+## ✨ Key Features
 
----
+### 👥 **User Management & Roles**
+- **Admin/Supervisor**: Full access to all features
+- **Team Members**: View and complete assigned tasks, read-only access to client accounts
+- Email/password authentication with forgot password flow
+- User profiles with avatar support
 
-## 🏗️ **Architecture Overview**
+### 🏢 **Client Management**
+- Add and manage client companies
+- Store contact information (name, email, phone)
+- Upload client logos and company details
+- Archive/restore client accounts
 
-### **Tech Stack**
-- **Backend**: Meteor 3.0 + MongoDB + Node.js
+### 📱 **Social Media Integration**
+- Connect Facebook Pages and Instagram accounts
+- OAuth integration with Facebook Graph API
+- Real-time connection status monitoring
+- Support for multiple accounts per client
+
+### 📋 **Advanced Task System**
+- Create tasks with rich descriptions and attachments
+- Due dates with time management
+- Assign to specific team members or entire team
+- Task categories: Work (default), Personal (user-defined)
+- File attachments (images, videos up to 5MB each, max 4 files)
+- Task status tracking: Draft → Scheduled → Completed
+
+### 🔔 **Smart Notifications**
+- Real-time push notifications for task assignments
+- Task deadline reminders
+- Tagged task notifications
+- Offline notification queuing
+
+### 💬 **Task Collaboration**
+- Task comments and follow-ups
+- Click to open tasks by ID
+- Team collaboration features
+- Activity tracking
+
+### 📱 **Progressive Web App (PWA)**
+- Works offline with cached tasks (last 7 days)
+- Install as mobile app
+- Background sync for task completions
+- Service worker for optimal performance
+
+## 🛠️ Tech Stack
+
+- **Backend**: Meteor 3.0 + MongoDB
 - **Frontend**: React 18 + JSX
-- **Styling**: Tailwind CSS 4.1 + Flowbite components
-- **Authentication**: Meteor accounts with role-based access (admin, supervisor, member)
+- **Styling**: Tailwind CSS 4.1
+- **Authentication**: Meteor Accounts with role-based access
 - **Real-time**: Meteor's reactive data system
-- **File Upload**: Cloudinary integration
-- **PWA**: Service worker + Web Push notifications
+- **File Storage**: Cloudinary integration
+- **Notifications**: Web Push API + Service Workers
+- **Mobile**: PWA with offline support
 
-### **Key Features**
-- ✅ User authentication with email verification
-- ✅ Role-based access control (Admin/Supervisor/Member)
-- ✅ Task creation, assignment, and tracking
-- ✅ Client management with contact details
-- ✅ Social media post scheduling (Facebook/Instagram)
-- ✅ Real-time notifications system
-- ✅ File uploads via Cloudinary
-- ✅ Mobile-responsive PWA
-- ✅ Offline support
+## 🚀 Quick Start
 
----
+### Prerequisites
+- Node.js 18+
+- Meteor 3.0+
+- MongoDB
 
-## 📁 **Project Structure Explained**
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/devshad-01/social-task.git
+   cd posty
+   ```
+
+2. **Install dependencies**
+   ```bash
+   meteor npm install
+   ```
+
+3. **Configure settings**
+   ```bash
+   cp settings.example.json settings.json
+   # Edit settings.json with your API keys and database URLs
+   ```
+
+4. **Required API Keys**
+   - **Cloudinary**: For file storage (`cloud_name`, `api_key`, `api_secret`)
+   - **Facebook App**: For social media integration (`appId`, `appSecret`)
+   - **VAPID Keys**: For push notifications (`publicKey`, `privateKey`)
+   - **MongoDB**: Database connection string
+
+5. **Start development server**
+   ```bash
+   meteor --settings settings.json
+   ```
+
+6. **Access the app**
+   - Local: http://localhost:3000
+   - Production: https://posty.meteorapp.com
+
+## 📁 Project Structure
 
 ```
 posty/
-├── 🎯 CLIENT ENTRY POINTS
-│   ├── client/main.jsx              # React app entry point
-│   └── client/main.css              # Tailwind + custom CSS
+├── client/                          # Client entry points
+│   ├── main.jsx                     # React app entry
+│   └── main.css                     # Tailwind CSS
 │
-├── 🏗️ CORE APPLICATION LOGIC
-│   ├── imports/
-│   │   ├── api/                     # Backend collections & methods
-│   │   │   ├── users/               # User auth & management
-│   │   │   │   ├── methods.js       # User registration/login
-│   │   │   │   ├── publications.js  # User data subscriptions
-│   │   │   │   ├── schemas.js       # Data validation schemas
-│   │   │   │   └── server/          # Server-only user logic
-│   │   │   │
-│   │   │   ├── tasks/               # Task management system
-│   │   │   │   ├── TasksCollection.js  # Task data model
-│   │   │   │   ├── methods.js       # Task CRUD operations
-│   │   │   │   └── server/          # Task server logic
-│   │   │   │
-│   │   │   ├── clients/             # Client management
-│   │   │   │   ├── ClientsCollection.js # Client data model
-│   │   │   │   └── server/          # Client server logic
-│   │   │   │
-│   │   │   ├── posts/               # Social media posts
-│   │   │   │   ├── PostsCollections.js # Post data model
-│   │   │   │   └── methods.js       # Post creation/sharing
-│   │   │   │
-│   │   │   ├── notifications/       # Push notifications
-│   │   │   │   ├── NotificationsCollection.js
-│   │   │   │   ├── methods.js       # Notification creation
-│   │   │   │   └── webPush.js       # Web push service
-│   │   │   │
-│   │   │   └── meta/                # Facebook/Instagram API
-│   │   │       ├── FetchAccounts.js # Fetch social accounts
-│   │   │       ├── methods.js       # Social media methods
-│   │   │       └── instagram.js     # Instagram specific logic
+├── imports/
+│   ├── api/                         # Backend collections & methods
+│   │   ├── users/                   # User authentication & management
+│   │   ├── tasks/                   # Task management system
+│   │   ├── clients/                 # Client management
+│   │   ├── posts/                   # Social media posts
+│   │   ├── notifications/           # Push notification system
+│   │   └── meta/                    # Facebook/Instagram API
+│   │
+│   ├── ui/                          # React frontend
+│   │   ├── components/              # Reusable UI components
+│   │   │   ├── auth/                # Authentication forms
+│   │   │   ├── common/              # Buttons, modals, inputs
+│   │   │   ├── layout/              # Page layouts
+│   │   │   ├── navigation/          # Headers, sidebars
+│   │   │   ├── tasks/               # Task components
+│   │   │   ├── clients/             # Client components
+│   │   │   └── notifications/       # Notification components
 │   │   │
-│   │   ├── ui/                      # Frontend React components
-│   │   │   ├── components/          # Reusable UI components
-│   │   │   │   ├── auth/            # Login/register forms
-│   │   │   │   ├── common/          # Buttons, inputs, modals
-│   │   │   │   ├── layout/          # Page layouts
-│   │   │   │   ├── navigation/      # Headers, sidebars, tabs
-│   │   │   │   ├── tasks/           # Task-specific components
-│   │   │   │   ├── clients/         # Client-specific components
-│   │   │   │   └── notifications/   # Notification components
-│   │   │   │
-│   │   │   ├── pages/               # Main route pages
-│   │   │   │   ├── DashboardPage.jsx    # Main dashboard
-│   │   │   │   ├── TasksPage.jsx        # Task management
-│   │   │   │   ├── ClientsPage.jsx      # Client management
-│   │   │   │   ├── PostsPage.jsx        # Social media posts
-│   │   │   │   ├── ProfilePage.jsx      # User settings
-│   │   │   │   └── AuthPage.jsx         # Login/register
-│   │   │   │
-│   │   │   ├── hooks/               # Custom React hooks
-│   │   │   │   ├── useAuth.js       # Authentication state
-│   │   │   │   ├── useTasks.js      # Task management
-│   │   │   │   └── useNavigation.js # Navigation state
+│   │   ├── pages/                   # Main route pages
+│   │   │   ├── DashboardPage.jsx    # Main dashboard
+│   │   │   ├── TasksPage.jsx        # Task management
+│   │   │   ├── ClientsPage.jsx      # Client management
+│   │   │   ├── PostsPage.jsx        # Social media posts
+│   │   │   ├── NotificationsPage.jsx # Notifications center
+│   │   │   └── ProfilePage.jsx      # User settings
+│   │   │
+│   │   ├── hooks/                   # Custom React hooks
+│   │   └── context/                 # React context providers
+│   │
+│   └── startup/                     # App initialization
+│       ├── client/                  # Client startup
+│       └── server/                  # Server startup
+│
+├── server/                          # Server-only code
+├── public/                          # Static assets & PWA manifest
+└── docs/                            # Project documentation
+```
+
+## 🔧 Configuration
+
+### Environment Variables (settings.json)
+
+```json
+{
+  "public": {
+    "app": {
+      "name": "Posty",
+      "version": "1.0.0"
+    },
+    "vapid": {
+      "publicKey": "YOUR_VAPID_PUBLIC_KEY"
+    }
+  },
+  "private": {
+    "cloudinary": {
+      "cloud_name": "your_cloud_name",
+      "api_key": "your_api_key", 
+      "api_secret": "your_api_secret"
+    },
+    "metaApi": {
+      "appId": "your_facebook_app_id",
+      "appSecret": "your_facebook_app_secret"
+    },
+    "vapid": {
+      "privateKey": "YOUR_VAPID_PRIVATE_KEY"
+    }
+  }
+}
+```
+
+## 🎯 Core Workflows
+
+### Admin Workflow
+1. **Setup**: Add client companies and connect their social media accounts
+2. **Task Creation**: Create tasks with descriptions, attachments, and due dates
+3. **Assignment**: Assign tasks to specific team members or entire team
+4. **Monitoring**: Track task progress and completion rates
+
+### Team Member Workflow  
+1. **Login**: Access assigned tasks through mobile PWA
+2. **Today's Tasks**: View tasks due today with priority sorting
+3. **Task Details**: View attachments, descriptions, and client information
+4. **Completion**: Mark tasks as completed with optional comments
+5. **Offline Access**: Work offline with cached task data
+
+## 🔐 Security Features
+
+- Role-based access control (Admin/Team Member)
+- Secure password hashing with bcrypt
+- Rate limiting for authentication attempts
+- Encrypted storage of social media tokens
+- CSRF protection and input validation
+
+## 📱 Mobile Features
+
+- **Responsive Design**: Mobile-first approach with Tailwind CSS
+- **PWA Support**: Install as native mobile app
+- **Offline Mode**: Works without internet connection
+- **Push Notifications**: Real-time task updates
+- **Touch Optimized**: Optimized for mobile interactions
+
+## 🔗 API Integrations
+
+### Facebook Graph API
+- Connect Facebook Pages
+- Link Instagram Business accounts
+- Validate token status
+- Post scheduling capabilities
+
+### Cloudinary
+- Image and video uploads
+- Automatic optimization
+- CDN delivery
+- File management
+
+## 📊 Key Data Models
+
+### Users
+- Email authentication with role-based permissions
+- Profile management with avatars
+- Activity tracking
+
+### Tasks
+- Rich task descriptions with attachments
+- Due date management with reminders
+- Status tracking (Draft → Scheduled → Completed)
+- Assignment to individuals or teams
+
+### Clients
+- Company information and contact details
+- Connected social media accounts
+- Project and task associations
+
+### Social Accounts
+- Platform-specific connection details
+- Token management and validation
+- Real-time status monitoring
+
+## 📈 Future Roadmap
+
+- [ ] Advanced analytics and reporting
+- [ ] Automated post scheduling
+- [ ] Team performance metrics  
+- [ ] Mobile app (iOS/Android)
+- [ ] Integration with more social platforms
+- [ ] Advanced collaboration tools
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License. See `LICENSE` file for details.
+
+## 🆘 Support
+
+- **Documentation**: See `/docs` folder for detailed guides
+- **Issues**: Report bugs on GitHub Issues
+- **Live Demo**: [posty.meteorapp.com](https://posty.meteorapp.com)
+
+---
+
+**Built with ❤️ by the Posty Team**
 │   │   │   │
 │   │   │   ├── context/             # React context providers
 │   │   │   │   ├── AuthContext.jsx  # User authentication
