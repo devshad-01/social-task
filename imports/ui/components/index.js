@@ -20,7 +20,7 @@ export { Badge } from './common/Badge';
 export { Avatar } from './common/Avatar';
 
 // Admin Components
-export { CronJobManager, NotificationHealthDashboard } from './admin';
+export { NotificationHealthDashboard } from './admin';
 export { MobileLoader } from './common/MobileLoader';
 export { Modal } from './common/Modal';
 export { Loading } from './common/Loading';

@@ -112,7 +112,62 @@ export const TasksPage = () => {
   ];
 
   if (loading) {
-    return <div className="p-6 text-center">Loading tasks...</div>;
+    if (isMobileOrTablet) {
+      return (
+        <div className="p-4">
+          {/* Mobile Skeleton Loading */}
+          <div className="mobile-skeleton-content">
+            <div className="mobile-skeleton-header">
+              <div className="mobile-skeleton-title"></div>
+              <div className="mobile-skeleton-subtitle"></div>
+            </div>
+            
+            {/* Stats Skeleton */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="p-2 bg-white rounded-lg border border-gray-100">
+                  <div className="text-center">
+                    <div className="mobile-skeleton-card-title mb-2"></div>
+                    <div className="mobile-skeleton-card-text mx-auto" style={{ width: '50%' }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Search Bar Skeleton */}
+            <div className="mb-4">
+              <div className="mobile-skeleton-card-title h-10 rounded-lg"></div>
+            </div>
+            
+            {/* Filter Buttons Skeleton */}
+            <div className="flex gap-2 mb-6 flex-wrap">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="mobile-skeleton-card-text h-8 w-20 rounded-full"></div>
+              ))}
+            </div>
+            
+            {/* Task Cards Skeleton */}
+            <div className="mobile-skeleton-cards">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="mobile-skeleton-card">
+                  <div className="mobile-skeleton-card-icon"></div>
+                  <div className="mobile-skeleton-card-content">
+                    <div className="mobile-skeleton-card-title"></div>
+                    <div className="mobile-skeleton-card-text"></div>
+                    <div className="mobile-skeleton-card-meta">
+                      <div className="mobile-skeleton-card-avatar"></div>
+                      <div className="mobile-skeleton-card-date"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    } else {
+      return <div className="p-6 text-center">Loading tasks...</div>;
+    }
   }
 
   if (error) {
