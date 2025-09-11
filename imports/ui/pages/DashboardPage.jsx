@@ -642,44 +642,86 @@ export const DashboardPage = ({ activeTab }) => {
             });
           }
         } else {
-          // No tasks exist - create motivational cards
-          allTaskCards.push({
-            id: 'create-first-task',
-            title: 'Create Your First Task',
-            subtitle: 'Start organizing your work',
-            completed: 0,
-            total: 0,
-            priority: 'start',
-            urgency: 'low',
-            icon: <Icons.plus className="w-6 h-6" />,
-            dueInfo: 'Get Started',
-            color: 'blue',
-            tasks: [],
-            users: [{
-              id: 'current-user',
-              name: userName,
-              avatar: user?.profile?.avatar || null
-            }]
-          });
+          // No tasks exist - create different cards based on user role
+          if (isAdmin) {
+            // Admin: Show "Create Your First Task" card
+            allTaskCards.push({
+              id: 'create-first-task',
+              title: 'Create Your First Task',
+              subtitle: 'Start organizing your work',
+              completed: 0,
+              total: 0,
+              priority: 'start',
+              urgency: 'low',
+              icon: <Icons.plus className="w-6 h-6" />,
+              dueInfo: 'Get Started',
+              color: 'blue',
+              tasks: [],
+              users: [{
+                id: 'current-user',
+                name: userName,
+                avatar: user?.profile?.avatar || null
+              }]
+            });
 
-          allTaskCards.push({
-            id: 'task-management',
-            title: 'Task Management',
-            subtitle: 'Organize and track your work efficiently',
-            completed: 0,
-            total: 0,
-            priority: 'info',
-            urgency: 'low',
-            icon: <Icons.target className="w-6 h-6" />,
-            dueInfo: 'Learn More',
-            color: 'gray',
-            tasks: [],
-            users: [{
-              id: 'current-user',
-              name: userName,
-              avatar: user?.profile?.avatar || null
-            }]
-          });
+            allTaskCards.push({
+              id: 'task-management',
+              title: 'Task Management',
+              subtitle: 'Organize and track your work efficiently',
+              completed: 0,
+              total: 0,
+              priority: 'info',
+              urgency: 'low',
+              icon: <Icons.target className="w-6 h-6" />,
+              dueInfo: 'Learn More',
+              color: 'gray',
+              tasks: [],
+              users: [{
+                id: 'current-user',
+                name: userName,
+                avatar: user?.profile?.avatar || null
+              }]
+            });
+          } else {
+            // Team Member: Show welcome/info cards without create options
+            allTaskCards.push({
+              id: 'welcome-team',
+              title: 'Welcome to Posty',
+              subtitle: 'Your assigned tasks will appear here',
+              completed: 0,
+              total: 0,
+              priority: 'info',
+              urgency: 'low',
+              icon: <Icons.user className="w-6 h-6" />,
+              dueInfo: 'Welcome',
+              color: 'blue',
+              tasks: [],
+              users: [{
+                id: 'current-user',
+                name: userName,
+                avatar: user?.profile?.avatar || null
+              }]
+            });
+
+            allTaskCards.push({
+              id: 'task-info',
+              title: 'Task Dashboard',
+              subtitle: 'Stay organized and track your progress',
+              completed: 0,
+              total: 0,
+              priority: 'info',
+              urgency: 'low',
+              icon: <Icons.target className="w-6 h-6" />,
+              dueInfo: 'Info',
+              color: 'gray',
+              tasks: [],
+              users: [{
+                id: 'current-user',
+                name: userName,
+                avatar: user?.profile?.avatar || null
+              }]
+            });
+          }
         }
       }    // Sort by priority: overdue -> high -> today -> active -> pending -> completed -> others
     const priorityOrder = {
@@ -732,6 +774,17 @@ export const DashboardPage = ({ activeTab }) => {
   });
 
   const handleTaskCardClick = (taskCard) => {
+    // Handle create task card - only for admins
+    if (taskCard.id === 'create-first-task') {
+      if (isAdmin) {
+        setIsCreateModalOpen(true);
+      } else {
+        // Team members should navigate to tasks page
+        navigate('/tasks');
+      }
+      return;
+    }
+    
     // If it's a specific task type, navigate to the tasks page with filter
     if (taskCard.id === 'urgent-tasks' || taskCard.id === 'overdue-tasks' || 
         taskCard.id === 'today-tasks' || taskCard.id === 'in-progress' || 
