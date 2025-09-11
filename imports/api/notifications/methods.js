@@ -149,15 +149,6 @@ if (Meteor.isServer) {
       priority = NOTIFICATION_PRIORITY.HIGH,
       ttlMinutes = 15 // Best practice: 15-minute TTL for task assignments
     }) {
-      console.log('[DEBUG] notifications.taskAssigned called with:', {
-        taskId,
-        taskTitle,
-        assignedBy,
-        assigneeIds,
-        dueDate,
-        priority
-      });
-      
       check(taskId, String);
       check(taskTitle, String);
       check(assignedBy, String);
