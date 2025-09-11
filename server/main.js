@@ -16,7 +16,6 @@ import '../imports/api/notifications/notificationQueue';
 import '../imports/api/notifications/server/publications';
 import '../imports/api/notifications/webPushServer';
 import '../imports/api/cron/methodsSimple';
-import '../imports/api/cron/testData';
 import '../imports/api/cron/server/publications';
 import './cloudinary_methods.js';
 import '../imports/api/clients/server/publications';

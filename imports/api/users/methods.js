@@ -46,11 +46,6 @@ Meteor.methods({
     // Custom email check from utils
     const existingUser = await findUserByEmail(userData.email);
     
-    // Debugging info - let's list all users and their emails to verify
-    console.log('[users.register] DEBUG: Listing all users in database:');
-    const allUsers = Meteor.users.find({}, { fields: { 'emails.address': 1 } }).fetch();
-    console.log(JSON.stringify(allUsers, null, 2));
-    
     if (existingUser) {
       console.log('[users.register] User already exists:', userData.email);
       throw new Meteor.Error(

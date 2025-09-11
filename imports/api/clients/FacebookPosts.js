@@ -8,23 +8,10 @@ Meteor.methods({
   'postToFacebook': async function({ postId, pageId, pageAccessToken, message, imageUrl }) {
     this.unblock();
 
-    // *** DEBUGGING LOGS START HERE ***
-    console.log("--- Method 'postToFacebook' called ---");
-    console.log("Received postId from client:", postId);
-    console.log("Received direct message from client:", message); // Will likely be undefined if only postId is sent
-    console.log("Received direct imageUrl from client:", imageUrl); // Will likely be undefined if only postId is sent
-
-    // 1. Get pageId and pageAccessToken from settings if not passed directly
-    // This is how your method currently gets them, assuming they're NOT passed from client
-    // and are instead fetched from Meteor.settings.
+    // Get pageId and pageAccessToken from settings
     const configFromSettings = Meteor.settings?.facebookPagePosting;
     const finalPageId = configFromSettings?.pageId;
     const finalPageAccessToken = configFromSettings?.pageAccessToken;
-
-    console.log("Page ID from settings:", finalPageId);
-    console.log("Page Access Token from settings (first 10 chars):", finalPageAccessToken?.substring(0, 10) + '...');
-    // *** DEBUGGING LOGS END HERE ***
-
 
     let postContent = {};
     if (postId) {
