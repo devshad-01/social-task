@@ -35,6 +35,8 @@ Meteor.publish('tasks.all', async function() {
   }
 
   console.log(`[tasks.all] Publishing all tasks for admin user ${this.userId}`);
+  // Admins see ALL tasks including scheduled ones not yet activated
+  // This allows them to manage and monitor scheduled tasks
   return Tasks.find({}, {
     sort: { createdAt: -1 }
   });
@@ -48,8 +50,19 @@ Meteor.publish('tasks.assigned', function() {
   }
 
   // Return tasks assigned to the current user
+  // EXCLUDE scheduled tasks that haven't been activated yet
   return Tasks.find({
-    assigneeIds: this.userId
+    assigneeIds: this.userId,
+    $or: [
+      { status: { $ne: 'scheduled' } }, // Include all non-scheduled tasks
+      { 
+        status: 'scheduled', 
+        $and: [
+          { scheduledAt: { $exists: true } },
+          { scheduledAt: { $lte: new Date() } } // Only include scheduled tasks that are due
+        ]
+      }
+    ]
   }, {
     sort: { dueDate: 1, priority: -1 }
   });
@@ -92,6 +105,15 @@ Meteor.publish('tasks.byStatus', async function(status) {
   // If not admin/supervisor, only show tasks assigned to them
   if (!(await isUserInRole(this.userId, ['admin', 'supervisor']))) {
     query.assigneeIds = this.userId;
+    
+    // For non-admin users, if they're requesting scheduled tasks,
+    // only show those that are due to be activated
+    if (status === 'scheduled') {
+      query.$and = [
+        { scheduledAt: { $exists: true } },
+        { scheduledAt: { $lte: new Date() } }
+      ];
+    }
   }
 
   return Tasks.find(query, {

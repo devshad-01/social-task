@@ -70,6 +70,9 @@ export const TaskCard = ({
             <div>
               <CardTitle className={`text-lg font-semibold ${task.status === 'completed' ? 'line-through text-gray-500' : 'text-gray-900'}`}>
                 {task.title}
+                {task.status === 'scheduled' && (
+                  <span className="scheduled-indicator">📅</span>
+                )}
               </CardTitle>
               {task.client && (
                 <div className="flex items-center space-x-2 mt-1">

@@ -2514,6 +2514,14 @@
   text-overflow: unset;
 }
 
+.scheduled-indicator {
+  margin-left: var(--spacing-sm);
+  font-size: 0.875rem;
+  opacity: 0.8;
+  display: inline-flex;
+  align-items: center;
+}
+
 .task-subtitle {
   overflow: hidden;
   text-overflow: ellipsis;
