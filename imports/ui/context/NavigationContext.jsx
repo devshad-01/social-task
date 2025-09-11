@@ -100,7 +100,7 @@ export const NavigationProvider = ({ children }) => {
           );
         } else {
           // Generic notification
-          WebPushService.sendNotification({
+          WebPushService.sendImmediateNotification({
             title: latestNotification.title || 'New Notification',
             message: latestNotification.message || 'You have a new notification',
             actionUrl: latestNotification.actionUrl || '/notifications',
