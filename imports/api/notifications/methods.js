@@ -2,10 +2,33 @@ import { Meteor } from 'meteor/meteor';
 import { check, Match } from 'meteor/check';
 import { Roles } from 'meteor/alanning:roles';
 import { NotificationQueueService, NOTIFICATION_PRIORITY } from './notificationQueue.js';
+import { SmartNotificationService } from './SmartNotificationService.js';
 
 /**
  * Enhanced Notification Methods with Professional Queuing
  */
+
+// Helper function to safely check user roles (async version for methods)
+async function isUserInRole(userId, roles) {
+  if (!userId) return false;
+  
+  try {
+    // Check profile.role first for compatibility
+    const user = await Meteor.users.findOneAsync(userId);
+    if (user?.profile?.role && roles.includes(user.profile.role)) {
+      return true;
+    }
+    
+    // Fallback to Meteor Roles package
+    if (Roles && typeof Roles.userIsInRole === 'function') {
+      return Roles.userIsInRole(userId, roles);
+    }
+  } catch (error) {
+    console.error('[NOTIFICATIONS] Error checking user role:', error);
+  }
+  
+  return false;
+}
 
 if (Meteor.isServer) {
   Meteor.methods({
@@ -22,6 +45,7 @@ if (Meteor.isServer) {
       priority = NOTIFICATION_PRIORITY.NORMAL,
       scheduleAt = new Date(),
       expiresAt = null,
+      ttlMinutes = 15, // Best practice: 15-minute TTL
       groupKey = null,
       replace = false
     }) {
@@ -45,6 +69,7 @@ if (Meteor.isServer) {
         priority,
         scheduleAt,
         expiresAt,
+        ttlMinutes, // Pass TTL parameter for relevance window
         groupKey,
         replace,
         metadata: {
@@ -66,6 +91,7 @@ if (Meteor.isServer) {
       priority = NOTIFICATION_PRIORITY.NORMAL,
       scheduleAt = new Date(),
       expiresAt = null,
+      ttlMinutes = 15, // Best practice: 15-minute TTL
       groupKey = null,
       replace = false
     }) {
@@ -91,6 +117,7 @@ if (Meteor.isServer) {
             priority,
             scheduleAt,
             expiresAt,
+            ttlMinutes, // Pass TTL parameter for relevance window
             groupKey,
             replace,
             metadata: {
@@ -117,7 +144,8 @@ if (Meteor.isServer) {
       assignedBy,
       assigneeIds,
       dueDate = null,
-      priority = NOTIFICATION_PRIORITY.HIGH
+      priority = NOTIFICATION_PRIORITY.HIGH,
+      ttlMinutes = 15 // Best practice: 15-minute TTL for task assignments
     }) {
       console.log('[DEBUG] notifications.taskAssigned called with:', {
         taskId,
@@ -160,6 +188,7 @@ if (Meteor.isServer) {
               dueDate
             },
             priority,
+            ttlMinutes, // TTL for relevance window
             groupKey: `task_assigned_${taskId}`, // Group similar notifications
             replace: true, // Replace any existing assignment notifications for this task
             metadata: {
@@ -185,7 +214,8 @@ if (Meteor.isServer) {
       taskTitle,
       completedBy,
       adminIds,
-      priority = NOTIFICATION_PRIORITY.NORMAL
+      priority = NOTIFICATION_PRIORITY.NORMAL,
+      ttlMinutes = 15 // Best practice: 15-minute TTL for task completion
     }) {
       check(taskId, String);
       check(taskTitle, String);
@@ -210,6 +240,7 @@ if (Meteor.isServer) {
               completedBy
             },
             priority,
+            ttlMinutes, // TTL for relevance window
             groupKey: `task_completed_${taskId}`,
             replace: true,
             metadata: {
@@ -235,7 +266,8 @@ if (Meteor.isServer) {
       taskTitle,
       assigneeIds,
       dueDate,
-      reminderTime = 24 * 60 * 60 * 1000 // 24 hours before due
+      reminderTime = 24 * 60 * 60 * 1000, // 24 hours before due
+      ttlMinutes = 15 // Best practice: 15-minute TTL for task reminders
     }) {
       check(taskId, String);
       check(taskTitle, String);
@@ -266,6 +298,7 @@ if (Meteor.isServer) {
             priority: NOTIFICATION_PRIORITY.HIGH,
             scheduleAt,
             expiresAt: dueDate, // Expire at due date
+            ttlMinutes, // TTL for relevance window
             groupKey: `task_reminder_${taskId}`,
             replace: true,
             metadata: {
@@ -327,7 +360,8 @@ if (Meteor.isServer) {
     async 'notifications.sendTest'({
       title = 'Test Notification',
       message = 'This is a test notification to verify your setup is working correctly!',
-      actionUrl = '/dashboard'
+      actionUrl = '/dashboard',
+      ttlMinutes = 15 // Best practice: 15-minute TTL for test notifications
     }) {
       check(title, String);
       check(message, String);
@@ -340,12 +374,165 @@ if (Meteor.isServer) {
         actionUrl,
         priority: NOTIFICATION_PRIORITY.HIGH,
         scheduleAt: new Date(), // Send immediately
+        ttlMinutes, // TTL for relevance window
         metadata: {
           sentBy: this.userId,
           method: 'notifications.sendTest',
           isTest: true
         }
       });
+    },
+
+    /**
+     * Retry failed notifications (admin only)
+     */
+    async 'notifications.retryFailed'() {
+      if (!Roles.userIsInRole(this.userId, ['admin'])) {
+        throw new Meteor.Error('unauthorized', 'Only admins can retry failed notifications');
+      }
+
+      return NotificationQueueService.retryFailedNotifications();
+    },
+
+    /**
+     * Clean up old notifications (admin only)
+     */
+    async 'notifications.cleanup'() {
+      if (!Roles.userIsInRole(this.userId, ['admin'])) {
+        throw new Meteor.Error('unauthorized', 'Only admins can cleanup notifications');
+      }
+
+      const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+      
+      // Clean up old completed/failed notifications
+      const { NotificationQueue } = await import('./NotificationsCollection.js');
+      const { InAppNotifications } = await import('./InAppNotifications.js');
+      
+      const queueCleaned = NotificationQueue.remove({
+        status: { $in: ['completed', 'failed'] },
+        updatedAt: { $lt: oneWeekAgo }
+      });
+
+      // Clean up old in-app notifications
+      const inAppCleaned = InAppNotifications.cleanupOldNotifications();
+
+      return {
+        cleaned: queueCleaned + (inAppCleaned || 0),
+        queueCleaned,
+        inAppCleaned: inAppCleaned || 0
+      };
+    },
+
+    /**
+     * Get total in-app notification count (admin only)
+     */
+    async 'inAppNotifications.getTotalCount'() {
+      if (!Roles.userIsInRole(this.userId, ['admin'])) {
+        throw new Meteor.Error('unauthorized', 'Only admins can view notification statistics');
+      }
+
+      const { InAppNotifications } = await import('./InAppNotifications.js');
+      return InAppNotifications.find().count();
+    },
+
+    /**
+     * Smart notification methods using best practice delivery strategies
+     */
+    
+    /**
+     * Send smart notification (automatically chooses ephemeral vs persistent)
+     */
+    async 'notifications.sendSmart'({
+      category,
+      userId,
+      title,
+      message,
+      actionUrl = '/dashboard',
+      data = {},
+      priority = NOTIFICATION_PRIORITY.NORMAL,
+      scheduleAt = new Date(),
+      customTtlMinutes = null // Allow custom TTL for testing
+    }) {
+      check(category, String);
+      check(userId, String);
+      check(title, String);
+      check(message, String);
+      
+      // Ensure user is authorized - use safe role checking
+      // Allow system/cron notifications (no userId context) or admin users
+      const isSystemCall = !this.userId; // Cron jobs and system calls have no userId
+      
+      if (!isSystemCall) {
+        // For user-initiated calls, check permissions
+        const isAdmin = await isUserInRole(this.userId, ['admin', 'supervisor']);
+        if (this.userId !== userId && !isAdmin) {
+          throw new Meteor.Error('unauthorized', 'Cannot send notification to other users');
+        }
+      }
+      // System calls are automatically authorized
+      
+      // For testing with 3-second TTL
+      if (data.testMode && data.ttlSeconds) {
+        customTtlMinutes = data.ttlSeconds / 60; // Convert seconds to minutes
+      }
+      
+      return await SmartNotificationService.send({
+        category,
+        userId,
+        title,
+        message,
+        actionUrl,
+        data,
+        priority,
+        scheduleAt,
+        customTtlMinutes
+      });
+    },
+
+    /**
+     * Send ephemeral task due reminder (TTL-only, no DB storage)
+     */
+    async 'notifications.taskDueReminder'({ userId, taskTitle, minutesLeft }) {
+      check(userId, String);
+      check(taskTitle, String);
+      check(minutesLeft, Number);
+      
+      return await SmartNotificationService.sendTaskDueReminder(userId, taskTitle, minutesLeft);
+    },
+
+    /**
+     * Send persistent task assignment (DB + TTL delivery)
+     */
+    async 'notifications.smartTaskAssigned'({ userId, taskTitle, assignerName, taskId }) {
+      check(userId, String);
+      check(taskTitle, String);
+      check(assignerName, String);
+      check(taskId, String);
+      
+      return await SmartNotificationService.sendTaskAssignment(userId, taskTitle, assignerName, taskId);
+    },
+
+    /**
+     * Send meeting alert (ephemeral)
+     */
+    async 'notifications.meetingAlert'({ userId, meetingTitle, minutesUntil }) {
+      check(userId, String);
+      check(meetingTitle, String);
+      check(minutesUntil, Number);
+      
+      return await SmartNotificationService.sendMeetingAlert(userId, meetingTitle, minutesUntil);
+    },
+
+    /**
+     * Get smart notification service statistics (admin only)
+     */
+    async 'notifications.getSmartStats'() {
+      const isAdmin = await isUserInRole(this.userId, ['admin']);
+      if (!isAdmin) {
+        throw new Meteor.Error('unauthorized', 'Only admins can view notification statistics');
+      }
+      
+      return await SmartNotificationService.getStats();
     }
   });
 }

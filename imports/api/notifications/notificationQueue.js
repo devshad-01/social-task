@@ -34,7 +34,8 @@ export const NOTIFICATION_STATUS = {
   SENT: 'sent',
   FAILED: 'failed',
   CANCELLED: 'cancelled',
-  RETRY: 'retry'
+  RETRY: 'retry',
+  EXPIRED: 'expired'
 };
 
 // Retry configuration
@@ -62,6 +63,7 @@ export const NotificationQueueService = {
     priority = NOTIFICATION_PRIORITY.NORMAL,
     scheduleAt = new Date(),
     expiresAt = null,
+    ttlMinutes = 15, // Best practice: 15-minute TTL for relevance
     groupKey = null, // For grouping similar notifications
     replace = false, // Replace existing notification with same groupKey
     metadata = {}
@@ -77,9 +79,9 @@ export const NotificationQueueService = {
         await this.removeByGroupKey(userId, groupKey);
       }
       
-      // Set default expiration to 7 days if not specified
+      // Set TTL-based expiration (best practice: 15 minutes for relevance)
       if (!expiresAt) {
-        expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        expiresAt = new Date(Date.now() + (ttlMinutes * 60 * 1000));
       }
       
       const notification = {
@@ -92,6 +94,7 @@ export const NotificationQueueService = {
         status: NOTIFICATION_STATUS.QUEUED,
         scheduleAt,
         expiresAt,
+        ttlMinutes, // Store TTL for processing logic
         groupKey,
         metadata,
         retryCount: 0,
@@ -157,6 +160,21 @@ export const NotificationQueueService = {
   async processNotification(notification) {
     if (Meteor.isServer) {
       try {
+        // Check TTL - notifications expire after 15 minutes by default (best practice)
+        const now = new Date();
+        const ttlMinutes = notification.ttlMinutes || 15;
+        const expiresAt = new Date(notification.createdAt.getTime() + (ttlMinutes * 60 * 1000));
+        
+        if (now > expiresAt) {
+          console.log(`[NotificationQueue] Notification ${notification._id} expired (TTL: ${ttlMinutes}min), marking as expired`);
+          await this.markAsExpired(notification._id);
+          return;
+        }
+
+        console.log(`[NotificationQueue] Processing notification ${notification._id} for user ${notification.userId} (expires in ${Math.round((expiresAt - now) / 60000)}min)`);
+        
+        // Proceed with notification delivery
+        
         // Mark as processing
         await NotificationQueue.updateAsync(notification._id, {
           $set: {
@@ -194,13 +212,57 @@ export const NotificationQueueService = {
           });
           
         } else {
-          throw new Error(result.error || 'Unknown error sending notification');
+          // Push notification failed, try database notification as fallback
+          await this.createDatabaseNotification(notification);
+          
+          // Mark as sent via database
+          await NotificationQueue.updateAsync(notification._id, {
+            $set: {
+              status: NOTIFICATION_STATUS.SENT,
+              sentAt: new Date(),
+              updatedAt: new Date(),
+              deliveryMethod: 'database',
+              notes: `Push failed: ${result.error || 'Unknown error'}, saved to database`
+            }
+          });
+          
+          this.logOperation('SENT_VIA_DATABASE', notification._id, { 
+            userId: notification.userId,
+            title: notification.title,
+            pushError: result.error
+          });
         }
         
       } catch (error) {
         console.error(`[NotificationQueue] Failed to process notification ${notification._id}:`, error);
         await this.handleFailedNotification(notification, error);
       }
+    }
+  },
+
+  /**
+   * Create database notification as fallback when push fails
+   */
+  async createDatabaseNotification(notification) {
+    try {
+      const { InAppNotifications } = await import('./InAppNotifications');
+      
+      await InAppNotifications.insertAsync({
+        userId: notification.userId,
+        title: notification.title,
+        message: notification.message,
+        actionUrl: notification.actionUrl,
+        data: notification.data,
+        type: 'system',
+        priority: notification.priority,
+        read: false,
+        createdAt: new Date(),
+        expiresAt: notification.expiresAt
+      });
+      
+      console.log(`[NotificationQueue] Created database notification for user ${notification.userId}`);
+    } catch (error) {
+      console.error('[NotificationQueue] Failed to create database notification:', error);
     }
   },
   
@@ -394,6 +456,28 @@ export const NotificationQueueService = {
           console.error('[NotificationQueue] Processing error:', error);
         });
       });
+    }
+  },
+
+  /**
+   * Mark notification as expired (TTL exceeded)
+   */
+  async markAsExpired(notificationId) {
+    try {
+      await NotificationQueue.updateAsync(notificationId, {
+        $set: {
+          status: NOTIFICATION_STATUS.EXPIRED,
+          expiredAt: new Date(),
+          updatedAt: new Date()
+        }
+      });
+      
+      this.logOperation('EXPIRED', notificationId, {
+        reason: 'TTL exceeded',
+        expiredAt: new Date()
+      });
+    } catch (error) {
+      console.error(`[NotificationQueue] Error marking notification ${notificationId} as expired:`, error);
     }
   }
 };

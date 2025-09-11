@@ -2,7 +2,8 @@
   "name": "meteor-app",
   "private": true,
   "scripts": {
-    "start": "meteor run",
+    "start": "meteor run --settings settings.json",
+    "meteor run":"meteor --settings settings.json",
     "test": "meteor test --once --driver-package meteortesting:mocha",
     "test-app": "TEST_WATCH=1 meteor test --full-app --driver-package meteortesting:mocha",
     "visualize": "meteor --production --extra-packages bundle-visualizer"
@@ -21,6 +22,7 @@
     "flowbite": "^3.1.2",
     "lucide-react": "^0.511.0",
     "meteor-node-stubs": "^1.2.5",
+    "node-cron": "^4.2.1",
     "postcss": "^8.5.3",
     "postcss-load-config": "^6.0.1",
     "prop-types": "^15.8.1",

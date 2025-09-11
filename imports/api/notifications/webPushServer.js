@@ -114,6 +114,26 @@ Meteor.methods({
   },
 
   /**
+   * Remove push subscription for a user (when they go offline/unsubscribe)
+   */
+  async 'webPush.removeSubscription'() {
+    if (!this.userId) {
+      throw new Meteor.Error('not-authorized', 'Must be logged in');
+    }
+
+    try {
+      // Remove the subscription
+      const result = await PushSubscriptions.removeAsync({ userId: this.userId });
+
+      console.log(`✅ Push subscription removed for user ${this.userId}`);
+      return { success: true, removed: result };
+    } catch (error) {
+      console.error('❌ Error removing push subscription:', error);
+      throw new Meteor.Error('subscription-remove-failed', 'Failed to remove push subscription');
+    }
+  },
+
+  /**
    * Send push notification to specific users
    */
   async 'webPush.sendNotification'(notificationData) {

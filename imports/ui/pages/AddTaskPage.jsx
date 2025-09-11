@@ -19,8 +19,10 @@ export const AddTaskPage = () => {
     title: '',
     description: '',
     dueDate: '',
+    scheduledAt: '',
     clientId: '',
     assigneeIds: [],
+    assignedTo: [], // Add this for scheduled tasks
     socialAccountIds: [],
     attachments: [],
     status: 'draft',
@@ -29,6 +31,7 @@ export const AddTaskPage = () => {
   });
   
   const [errors, setErrors] = useState({});
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
@@ -91,88 +94,57 @@ export const AddTaskPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
     e.preventDefault();
     
-    console.log('[AddTaskPage] Form submitted with data:', formData);
-    console.log('[AddTaskPage] Current user ID:', Meteor.userId());
-    console.log('[AddTaskPage] Users available:', users);
-    
-    if (!validateForm()) {
-      console.log('[AddTaskPage] Form validation failed:', errors);
+    if (!formData.title || !formData.description) {
+      setErrors(prev => ({ ...prev, submit: 'Please fill in all required fields' }));
       return;
     }
-    
-    setLoading(true);
-    
-    try {
-      console.log('[AddTaskPage] Calling tasks.insert...');
-      
-      const taskData = {
-        ...formData,
-        dueDate: new Date(formData.dueDate)
-      };
-      
-      console.log('[AddTaskPage] Task data to send:', taskData);
-      console.log('[AddTaskPage] Available Meteor methods:', Object.keys(Meteor.connection._methodHandlers || {}));
-      console.log('[AddTaskPage] tasks.insert method available:', !!Meteor.connection._methodHandlers?.['tasks.insert']);
-      
-      const result = await new Promise((resolve, reject) => {
-        Meteor.call('tasks.insert', taskData, (error, result) => {
-          if (error) {
-            console.error('[AddTaskPage] Meteor.call error:', error);
-            console.error('[AddTaskPage] Error details:', {
-              error: error.error,
-              reason: error.reason,
-              message: error.message,
-              stack: error.stack
-            });
-            reject(error);
-          } else {
-            console.log('[AddTaskPage] Task created successfully with ID:', result);
-            resolve(result);
-          }
-        });
-      });
-      
-      // Send notifications to assignees
-      if (formData.assigneeIds.length > 0) {
-        console.log('[AddTaskPage] Sending notifications to assignees:', formData.assigneeIds);
-        try {
-          await new Promise((resolve, reject) => {
-            Meteor.call('notifications.taskAssigned', {
-              taskId: result,
-              taskTitle: formData.title,
-              assignedBy: Meteor.userId(),
-              assigneeIds: formData.assigneeIds
-            }, (error) => {
-              if (error) {
-                console.error('[AddTaskPage] Notification error:', error);
-                // Don't fail the whole operation for notification errors
-                resolve();
-              } else {
-                console.log('[AddTaskPage] Notifications sent successfully');
-                resolve();
-              }
-            });
-          });
-        } catch (notificationError) {
-          console.error('[AddTaskPage] Failed to send notifications:', notificationError);
-          // Continue anyway - task creation succeeded
-        }
+
+    // For scheduled tasks, ensure scheduled time and assignees are set
+    if (formData.status === 'scheduled') {
+      if (!formData.scheduledAt) {
+        setErrors(prev => ({ ...prev, submit: 'Scheduled execution time is required for scheduled tasks' }));
+        return;
       }
-      
-      setShowToast(true);
-      setTimeout(() => {
-        navigate('/tasks');
-      }, 1000);
-      
-    } catch (error) {
-      console.error('[AddTaskPage] Error creating task:', error);
-      setErrors({ submit: error.message });
-    } finally {
-      setLoading(false);
+      if (!formData.assigneeIds || formData.assigneeIds.length === 0) {
+        setErrors(prev => ({ ...prev, submit: 'Assignees are required for scheduled tasks' }));
+        return;
+      }
     }
+
+    setLoading(true);
+    setErrors(prev => ({ ...prev, submit: '' }));
+
+    const taskData = {
+      title: formData.title,
+      description: formData.description,
+      priority: formData.priority,
+      status: formData.status,
+      dueDate: formData.dueDate ? new Date(formData.dueDate) : null,
+      scheduledAt: formData.scheduledAt ? new Date(formData.scheduledAt) : null,
+      clientId: formData.clientId,
+      assigneeIds: formData.assigneeIds || [],
+      socialAccountIds: formData.socialAccountIds || [],
+      attachments: formData.attachments || [],
+      tags: formData.tags || []
+    };
+
+    Meteor.call('tasks.insert', taskData, (error, result) => {
+      setLoading(false);
+      if (error) {
+        setErrors(prev => ({ ...prev, submit: error.reason || 'Failed to create task' }));
+      } else {
+        // Success message based on task type
+        if (formData.status === 'scheduled') {
+          alert('📅 Scheduled task created! Assignees will be notified at the scheduled execution time.');
+        } else {
+          alert('Task created successfully!');
+        }
+        navigate('/tasks');
+      }
+    });
   };
 
   // Redirect if user can't create tasks
@@ -259,21 +231,49 @@ export const AddTaskPage = () => {
                     onChange={(e) => handleChange('status', e.target.value)}
                     options={[
                       { value: 'draft', label: 'Draft' },
+                      { value: 'scheduled', label: '📅 Scheduled Task' },
                       { value: 'pending', label: 'Pending' },
                       { value: 'in-progress', label: 'In Progress' },
                       { value: 'completed', label: 'Completed' }
                     ]}
                   />
                 </div>
+
+                {formData.status === 'scheduled' && (
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <h4 className="font-medium text-blue-900 mb-2">📅 Schedule Settings</h4>
+                    <p className="text-sm text-blue-700 mb-3">
+                      Set when this task should be activated and when it should be completed.
+                    </p>
+                    
+                    <div className="space-y-3">
+                      <Input
+                        label="🕐 Execute At (When to start the task)"
+                        name="scheduledAt"
+                        type="datetime-local"
+                        value={formData.scheduledAt}
+                        onChange={(e) => handleChange('scheduledAt', e.target.value)}
+                        error={errors.scheduledAt}
+                        required={formData.status === 'scheduled'}
+                        help="Assigned users will be notified at this time"
+                      />
+                    </div>
+                    
+                    <div className="text-xs text-blue-600 mt-2">
+                      💡 Make sure to assign users for notifications to work.
+                    </div>
+                  </div>
+                )}
                 
                 <Input
-                  label="Due Date"
+                  label={formData.status === 'scheduled' ? "🏁 Due Date (When task should be completed)" : "Due Date"}
                   name="dueDate"
                   type="datetime-local"
                   value={formData.dueDate}
                   onChange={(e) => handleChange('dueDate', e.target.value)}
                   error={errors.dueDate}
-                  required
+                  help={formData.status === 'scheduled' ? "Optional: Set a completion deadline" : undefined}
+                  required={formData.status !== 'scheduled'}
                 />
               </CardContent>
             </Card>

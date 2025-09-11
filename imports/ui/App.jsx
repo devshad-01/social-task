@@ -10,6 +10,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { ClientsPage } from './pages/ClientsPage';
 import { TeamPage } from './pages/TeamPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
+import { AdminSystemPage } from './pages/AdminSystemPage';
 import { AuthRequired } from './components/AuthRequired';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { AuthContainer } from './components/auth/AuthContainer';
@@ -143,6 +144,11 @@ export const App = () => {
           <Route path="add-task" element={
             <ProtectedRoute adminOnly={true}>
               <AddTaskPage />
+            </ProtectedRoute>
+          } />
+          <Route path="admin-system" element={
+            <ProtectedRoute adminOnly={true}>
+              <AdminSystemPage />
             </ProtectedRoute>
           } />
       

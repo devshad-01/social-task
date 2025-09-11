@@ -69,6 +69,7 @@ export const NavigationProvider = ({ children }) => {
     else if (path === '/team') setActiveTab('team');
     else if (path === '/analytics') setActiveTab('analytics');
     else if (path === '/posts') setActiveTab('posts');
+    else if (path === '/admin-system') setActiveTab('admin-system');
 
   }, [location]);
 
@@ -186,6 +187,13 @@ export const NavigationProvider = ({ children }) => {
         icon: 'post',
         path: '/posts',
         roles: ['admin', 'manager', 'user']
+      },
+      {
+        id: 'admin-system',
+        label: 'System Admin',
+        icon: 'settings',
+        path: '/admin-system',
+        roles: ['admin']
       }
     ];
 
