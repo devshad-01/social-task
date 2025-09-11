@@ -218,6 +218,16 @@ export const BottomTabBar = () => {
                   <button
                     onClick={() => {
                       setShowMoreModal(false);
+                      navigate('/posts');
+                    }}
+                    className="w-full flex items-center gap-3 p-4 rounded-lg transition-all duration-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 hover:scale-105"
+                  >
+                    <Icons.clipboard className="w-5 h-5 text-indigo-600" />
+                    <span className="font-medium">Posts</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowMoreModal(false);
                       navigate('/analytics');
                     }}
                     className="w-full flex items-center gap-3 p-4 rounded-lg transition-all duration-200 bg-green-50 hover:bg-green-100 text-green-700 hover:scale-105"

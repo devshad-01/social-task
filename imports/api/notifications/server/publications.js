@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { check } from 'meteor/check';
 import { Roles } from 'meteor/alanning:roles';
 import { Notifications } from '../NotificationsCollection';
+import { InAppNotifications } from '../InAppNotifications';
 import { NotificationQueue } from '../notificationQueue';
 
 // Publication for user's notifications
@@ -82,6 +83,42 @@ Meteor.publish('notifications.queue', function(limit = 100) {
     { 
       sort: { createdAt: -1 },
       limit: limit
+    }
+  );
+});
+
+// Publication for user's in-app notifications
+Meteor.publish('inapp.notifications.user', function(limit = 50) {
+  check(limit, Number);
+
+  // Check if user is logged in
+  if (!this.userId) {
+    return this.ready();
+  }
+
+  return InAppNotifications.find(
+    { userId: this.userId },
+    { 
+      sort: { createdAt: -1 },
+      limit: limit
+    }
+  );
+});
+
+// Publication for unread in-app notifications count
+Meteor.publish('inapp.notifications.unreadCount', function() {
+  // Check if user is logged in
+  if (!this.userId) {
+    return this.ready();
+  }
+
+  return InAppNotifications.find(
+    { 
+      userId: this.userId,
+      read: false
+    },
+    {
+      fields: { _id: 1 }
     }
   );
 });

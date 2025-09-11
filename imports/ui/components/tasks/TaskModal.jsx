@@ -316,7 +316,7 @@ export const TaskModal = ({
               Cancel
             </Button>
             {!isViewMode && (
-              <Button type="submit" loading={loading}>
+              <Button type="submit" variant="primary" loading={loading}>
                 {isCreateMode ? 'Create Task' : 'Save Changes'}
               </Button>
             )}

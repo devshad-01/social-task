@@ -12,6 +12,7 @@ import { TaskCard } from '../components/tasks/TaskCard';
 import { TaskFilters } from '../components/tasks/TaskFilters';
 import { useTasks } from '../hooks/useTasks';
 import { NavigationContext } from '../context/NavigationContext';
+import { ResponsiveContext } from '../context/ResponsiveContext';
 import { Icons } from '../components/Icons';
 
 export const TasksPage = () => {
@@ -21,6 +22,7 @@ export const TasksPage = () => {
   const [advancedFilters, setAdvancedFilters] = useState({});
 
   const { canCreateTasks } = useContext(NavigationContext);
+  const { isMobileOrTablet } = useContext(ResponsiveContext);
 
   const { user } = useTracker(() => ({
     user: Meteor.user()
@@ -119,22 +121,24 @@ export const TasksPage = () => {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
-            <p className="text-gray-600">
-              {canCreateTasks ? 'Manage all tasks and assignments' : 'View your assigned tasks'}
-            </p>
+      {!isMobileOrTablet && (
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
+              <p className="text-gray-600">
+                {canCreateTasks ? 'Manage all tasks and assignments' : 'View your assigned tasks'}
+              </p>
+            </div>
+            {canCreateTasks && (
+              <Button onClick={() => navigate('/add-task')} className="flex items-center gap-2">
+                {React.createElement(Icons.plus, { className: "h-4 w-4" })}
+                New Task
+              </Button>
+            )}
           </div>
-          {canCreateTasks && (
-            <Button onClick={() => navigate('/add-task')} className="flex items-center gap-2">
-              {React.createElement(Icons.plus, { className: "h-4 w-4" })}
-              New Task
-            </Button>
-          )}
         </div>
-      </div>
+      )}
 
       {/* Advanced Filters for Admins */}
       {canCreateTasks && (
@@ -149,67 +153,69 @@ export const TasksPage = () => {
       )}
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
-        <Card className="p-4">
+      <div className={`grid gap-4 mb-6 ${isMobileOrTablet ? 'grid-cols-3' : 'grid-cols-2 md:grid-cols-4 lg:grid-cols-6'}`}>
+        <Card className={`${isMobileOrTablet ? 'p-2' : 'p-4'}`}>
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
-            <div className="text-sm text-gray-500">Total</div>
+            <div className={`font-bold text-blue-600 ${isMobileOrTablet ? 'text-lg' : 'text-2xl'}`}>{stats.total}</div>
+            <div className={`text-gray-500 ${isMobileOrTablet ? 'text-xs' : 'text-sm'}`}>Total</div>
           </div>
         </Card>
-        <Card className="p-4">
+        <Card className={`${isMobileOrTablet ? 'p-2' : 'p-4'}`}>
           <div className="text-center">
-            <div className="text-2xl font-bold text-gray-600">{stats.draft || 0}</div>
-            <div className="text-sm text-gray-500">Draft</div>
+            <div className={`font-bold text-purple-600 ${isMobileOrTablet ? 'text-lg' : 'text-2xl'}`}>{stats.in_progress}</div>
+            <div className={`text-gray-500 ${isMobileOrTablet ? 'text-xs' : 'text-sm'}`}>Active</div>
           </div>
         </Card>
-        <Card className="p-4">
+        <Card className={`${isMobileOrTablet ? 'p-2' : 'p-4'}`}>
           <div className="text-center">
-            <div className="text-2xl font-bold text-orange-600">{stats.scheduled || 0}</div>
-            <div className="text-sm text-gray-500">Scheduled</div>
+            <div className={`font-bold text-green-600 ${isMobileOrTablet ? 'text-lg' : 'text-2xl'}`}>{stats.completed}</div>
+            <div className={`text-gray-500 ${isMobileOrTablet ? 'text-xs' : 'text-sm'}`}>Done</div>
           </div>
         </Card>
-        <Card className="p-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600">{stats.in_progress}</div>
-            <div className="text-sm text-gray-500">In Progress</div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
-            <div className="text-sm text-gray-500">Completed</div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-red-600">{stats.overdue || 0}</div>
-            <div className="text-sm text-gray-500">Overdue</div>
-          </div>
-        </Card>
+        {!isMobileOrTablet && (
+          <>
+            <Card className="p-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-gray-600">{stats.draft || 0}</div>
+                <div className="text-sm text-gray-500">Draft</div>
+              </div>
+            </Card>
+            <Card className="p-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-600">{stats.scheduled || 0}</div>
+                <div className="text-sm text-gray-500">Scheduled</div>
+              </div>
+            </Card>
+            <Card className="p-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-red-600">{stats.overdue || 0}</div>
+                <div className="text-sm text-gray-500">Overdue</div>
+              </div>
+            </Card>
+          </>
+        )}
       </div>
 
       {/* Search and Filters */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <div className="flex flex-col sm:flex-row gap-4 flex-1">
-          <div className="relative flex-1 max-w-sm">
-            {React.createElement(Icons.search, { className: "absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" })}
+      <div className={`mb-6 flex flex-col gap-4 justify-between ${isMobileOrTablet ? 'space-y-3' : 'sm:flex-row items-start sm:items-center'}`}>
+        <div className={`flex flex-col gap-4 flex-1 ${isMobileOrTablet ? 'space-y-2' : 'sm:flex-row'}`}>
+          <div className={`relative flex-1 ${isMobileOrTablet ? 'w-full' : 'max-w-sm'}`}>
             <Input
               type="text"
               placeholder="Search tasks..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
             />
           </div>
           
-          <div className="flex flex-wrap gap-2">
+          <div className={`flex gap-2 ${isMobileOrTablet ? 'flex-wrap' : 'flex-wrap'}`}>
             {filterOptions.map((option) => (
               <Button
                 key={option.value}
                 variant={filter === option.value ? 'default' : 'outline'}
-                size="sm"
+                size={isMobileOrTablet ? 'sm' : 'sm'}
                 onClick={() => setFilter(option.value)}
-                className="flex items-center gap-2"
+                className={`flex items-center gap-1 ${isMobileOrTablet ? 'text-xs px-2 py-1' : 'gap-2'}`}
               >
                 {option.label}
                 <Badge variant="secondary" size="sm">

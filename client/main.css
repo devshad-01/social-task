@@ -86,6 +86,9 @@
   --transition-fast: 150ms ease-in-out;
   --transition-normal: 200ms ease-in-out;
   --transition-slow: 300ms ease-in-out;
+
+  /* Gradients */
+  --bg-gradient-primary: linear-gradient(to right, var(--primary-500), var(--primary-600));
 }
 
 /* Custom base styles and utilities for theming (no @apply, only raw CSS and variables as @apply have issues) */
@@ -381,8 +384,8 @@ body {
 }
 
 .hamburger-icon, .notification-bell-icon, .notification-bell-mobile, .header-icon-button svg {
-  width: 2.2rem;
-  height: 2.2rem;
+  width: 2.4rem;
+  height: 2.4rem;
   stroke-width: 2.5;
   color: var(--primary-700);
   font-weight: 900;

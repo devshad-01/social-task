@@ -10,7 +10,8 @@ import { Input } from '../components/common/Input';
 import { EmptyState } from '../components/common/EmptyState';
 import { NotificationCard } from '../components/notifications/NotificationCard';
 import { NavigationContext } from '../context/NavigationContext';
-import { Notifications as NotificationsCollection } from '../../api/notifications/NotificationsCollection';
+import { ResponsiveContext } from '../context/ResponsiveContext';
+import { InAppNotifications } from '../../api/notifications/InAppNotifications';
 import { Icons } from '../components/Icons';
 
 export const NotificationsPage = () => {
@@ -19,15 +20,16 @@ export const NotificationsPage = () => {
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedNotification, setSelectedNotification] = useState(null);
-  const { markNotificationAsRead, markAllNotificationsAsRead } = useContext(NavigationContext);
+  const { markNotificationAsRead, markAllNotificationsAsRead, deleteNotification } = useContext(NavigationContext);
+  const { isMobileOrTablet } = useContext(ResponsiveContext);
 
   // Track notifications with Meteor's reactive data
   const { notifications, unreadCount, loading } = useTracker(() => {
-    const handle = Meteor.subscribe('notifications.user');
-    const notifications = NotificationsCollection.find({}, { 
+    const handle = Meteor.subscribe('inapp.notifications.user', 100); // Updated subscription name
+    const notifications = InAppNotifications.find({}, { 
       sort: { createdAt: -1 } 
     }).fetch();
-    const unreadCount = NotificationsCollection.find({ read: false }).count();
+    const unreadCount = InAppNotifications.find({ read: false }).count();
     
     return {
       notifications,
@@ -121,79 +123,100 @@ export const NotificationsPage = () => {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Notifications</h1>
-        <p className="text-gray-600">Stay updated with your latest activities</p>
-      </div>
+      {!isMobileOrTablet && (
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Notifications</h1>
+          <p className="text-gray-600">Stay updated with your latest activities</p>
+        </div>
+      )}
 
-      {/* Stats Overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Card className="p-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
-            <div className="text-sm text-gray-500">Total</div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-red-600">{stats.unread}</div>
-            <div className="text-sm text-gray-500">Unread</div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-orange-600">{stats.high}</div>
-            <div className="text-sm text-gray-500">High Priority</div>
-          </div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{stats.total - stats.unread}</div>
-            <div className="text-sm text-gray-500">Read</div>
-          </div>
-        </Card>
-      </div>
+      {/* Stats Overview - Desktop Only */}
+      {!isMobileOrTablet && (
+        <div className="grid gap-4 mb-6 grid-cols-2 md:grid-cols-4">
+          <Card className="p-4">
+            <div className="text-center">
+              <div className="font-bold text-blue-600 text-2xl">{stats.total}</div>
+              <div className="text-gray-500 text-sm">Total</div>
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="text-center">
+              <div className="font-bold text-red-600 text-2xl">{stats.unread}</div>
+              <div className="text-gray-500 text-sm">Unread</div>
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-orange-600">{stats.high}</div>
+              <div className="text-sm text-gray-500">High Priority</div>
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600">{stats.total - stats.unread}</div>
+              <div className="text-sm text-gray-500">Read</div>
+            </div>
+          </Card>
+        </div>
+      )}
 
-      {/* Search and Filters */}
-      <div className="mb-6 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <div className="flex flex-col sm:flex-row gap-4 flex-1">
-          <div className="relative flex-1 max-w-sm">
-            <Icons.search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="Search notifications..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          
-          <div className="flex flex-wrap gap-2">
-            {filterOptions.map((option) => (
-              <Button
-                key={option.value}
-                variant={filter === option.value ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilter(option.value)}
-                className="flex items-center gap-2"
-              >
-                {option.label}
-                {option.count > 0 && (
+      {/* Mobile: Simple header with mark all read */}
+      {isMobileOrTablet && stats.unread > 0 && (
+        <div className="flex justify-end mb-3">
+          <Button 
+            onClick={handleMarkAllAsRead}
+            variant="primary"
+            size="sm"
+            className="text-sm"
+          >
+            Mark all as read
+          </Button>
+        </div>
+      )}
+
+      {/* Search and Filters - Desktop Only */}
+      {!isMobileOrTablet && (
+        <div className="mb-6 flex flex-col gap-4 justify-between sm:flex-row items-start sm:items-center">
+          <div className="flex flex-col gap-4 flex-1 sm:flex-row">
+            <div className="relative flex-1 max-w-sm">
+              <Input
+                type="text"
+                placeholder="Search notifications..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
+            <div className="flex gap-2 flex-wrap">
+              {filterOptions.map((option) => (
+                <Button
+                  key={option.value}
+                  variant={filter === option.value ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setFilter(option.value)}
+                  className="flex items-center gap-2"
+                >
+                  {option.label}
                   <Badge variant="secondary" size="sm">
                     {option.count}
                   </Badge>
-                )}
-              </Button>
-            ))}
+                </Button>
+              ))}
+            </div>
           </div>
-        </div>
-        
-        {stats.unread > 0 && (
-          <Button onClick={handleMarkAllAsRead} variant="outline" size="sm">
+          
+          <Button 
+            onClick={handleMarkAllAsRead}
+            variant="outline"
+            size="sm"
+            disabled={stats.unread === 0}
+            className="flex items-center gap-2"
+          >
+            <Icons.check className="h-4 w-4" />
             Mark All Read
           </Button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Notifications List */}
       {filteredNotifications.length > 0 ? (
@@ -203,6 +226,8 @@ export const NotificationsPage = () => {
               key={notification._id}
               notification={notification}
               onClick={() => handleNotificationClick(notification)}
+              onMarkAsRead={(notif) => markNotificationAsRead(notif._id)}
+              onDelete={(notif) => deleteNotification(notif._id)}
               highlight={highlightId === notification._id}
             />
           ))}

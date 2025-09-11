@@ -106,20 +106,6 @@ export const DesktopNavbar = () => {
 
         {/* Bottom section with user info */}
         <div className="desktop-navbar-bottom">
-          {/* Search Bar */}
-          <div className="desktop-search-container">
-            <div className="search-input-wrapper">
-              <Icons.search className="search-icon" />
-              <input 
-                type="text" 
-                placeholder="Search..." 
-                className="search-input"
-                onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setIsSearchFocused(false)}
-              />
-            </div>
-          </div>
-
           {/* Notifications */}
           <div className="desktop-notification-container">
             <NotificationBell 
