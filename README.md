@@ -12,6 +12,25 @@
 - Email/password authentication with forgot password flow
 - User profiles with avatar support
 
+### 🔐 **Role-Based Permissions**
+
+#### Admin Capabilities:
+- ✅ Create, edit, and delete tasks
+- ✅ Manage client companies and social media accounts
+- ✅ Add and manage team members
+- ✅ View all tasks and analytics
+- ✅ Access admin control panel
+- ✅ Configure system settings
+
+#### Team Member Capabilities:
+- ✅ View assigned tasks
+- ✅ Mark tasks as completed
+- ✅ View client information (read-only)
+- ✅ Receive push notifications
+- ✅ Use mobile PWA features
+- ❌ Cannot create or delete tasks
+- ❌ Cannot manage clients or team members
+
 ### 🏢 **Client Management**
 - Add and manage client companies
 - Store contact information (name, email, phone)
@@ -101,6 +120,13 @@
 6. **Access the app**
    - Local: http://localhost:3000
    - Production: https://posty.meteorapp.com
+
+7. **First-time Admin Login**
+   ```
+   Email: admin@posty.com
+   Password: Admin123!
+   ```
+   > **Important**: On first run, the system automatically creates an admin account with the above credentials. Change this password immediately after first login for security!
 
 ## 📁 Project Structure
 
