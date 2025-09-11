@@ -3,6 +3,8 @@ import { check, Match } from 'meteor/check';
 import { Roles } from 'meteor/alanning:roles';
 import { NotificationQueueService, NOTIFICATION_PRIORITY } from './notificationQueue.js';
 import { SmartNotificationService } from './SmartNotificationService.js';
+import { Notifications as NotificationsCollection } from './NotificationsCollection.js';
+import { InAppNotifications } from './InAppNotifications.js';
 
 /**
  * Enhanced Notification Methods with Professional Queuing
@@ -533,6 +535,67 @@ if (Meteor.isServer) {
       }
       
       return await SmartNotificationService.getStats();
+    },
+
+    /**
+     * Mark notification as read
+     */
+    async 'notifications.markAsRead'(notificationId) {
+      check(notificationId, String);
+      
+      if (!this.userId) {
+        throw new Meteor.Error('unauthorized', 'Must be logged in');
+      }
+      
+      const notification = await InAppNotifications.findOneAsync({
+        _id: notificationId,
+        userId: this.userId
+      });
+      
+      if (!notification) {
+        throw new Meteor.Error('not-found', 'Notification not found');
+      }
+      
+      return await InAppNotifications.updateAsync(notificationId, {
+        $set: { read: true, readAt: new Date() }
+      });
+    },
+
+    /**
+     * Mark all notifications as read for current user
+     */
+    async 'notifications.markAllAsRead'() {
+      if (!this.userId) {
+        throw new Meteor.Error('unauthorized', 'Must be logged in');
+      }
+      
+      return await InAppNotifications.updateAsync(
+        { userId: this.userId, read: false },
+        { $set: { read: true, readAt: new Date() } },
+        { multi: true }
+      );
+    },
+
+    /**
+     * Delete notification
+     */
+    async 'notifications.delete'(notificationId) {
+      check(notificationId, String);
+      
+      if (!this.userId) {
+        throw new Meteor.Error('unauthorized', 'Must be logged in');
+      }
+      
+      const notification = await InAppNotifications.findOneAsync({
+        _id: notificationId,
+        userId: this.userId
+      });
+      
+      if (!notification) {
+        throw new Meteor.Error('not-found', 'Notification not found');
+      }
+      
+      return await InAppNotifications.removeAsync(notificationId);
     }
   });
 }

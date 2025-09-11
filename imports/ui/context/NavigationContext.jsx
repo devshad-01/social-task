@@ -2,7 +2,7 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useTracker } from 'meteor/react-meteor-data';
 import { Meteor } from 'meteor/meteor';
-import { Notifications as NotificationsCollection } from '../../api/notifications/NotificationsCollection';
+import { InAppNotifications as NotificationsCollection } from '../../api/notifications/InAppNotifications';
 import { WebPushService } from '../../api/notifications/webPush';
 
 // Define the shape of our navigation state
@@ -29,8 +29,8 @@ export const NavigationProvider = ({ children }) => {
   // Track user and notifications with Meteor's reactive data
   const { user, notifications, unreadCount } = useTracker(() => {
     const userHandle = Meteor.subscribe('userData');
-    const notificationsHandle = Meteor.subscribe('notifications.user');
-    const unreadCountHandle = Meteor.subscribe('notifications.unreadCount');
+    const notificationsHandle = Meteor.subscribe('inapp.notifications.user');
+    const unreadCountHandle = Meteor.subscribe('inapp.notifications.unreadCount');
     
     const user = Meteor.user();
     const notifications = NotificationsCollection.find({}, { 
@@ -113,7 +113,7 @@ export const NavigationProvider = ({ children }) => {
 
   // Notification actions
   const markNotificationAsRead = (notificationId) => {
-    Meteor.call('notifications.markAsRead', notificationId, (error) => {
+    Meteor.call('inAppNotifications.markAsRead', notificationId, (error) => {
       if (error) {
         console.error('Error marking notification as read:', error);
       }
@@ -121,9 +121,17 @@ export const NavigationProvider = ({ children }) => {
   };
 
   const markAllNotificationsAsRead = () => {
-    Meteor.call('notifications.markAllAsRead', (error) => {
+    Meteor.call('inAppNotifications.markAllAsRead', (error) => {
       if (error) {
         console.error('Error marking all notifications as read:', error);
+      }
+    });
+  };
+
+  const deleteNotification = (notificationId) => {
+    Meteor.call('inAppNotifications.delete', notificationId, (error) => {
+      if (error) {
+        console.error('Error deleting notification:', error);
       }
     });
   };
@@ -234,6 +242,7 @@ export const NavigationProvider = ({ children }) => {
     canCreateTasks,
     markNotificationAsRead,
     markAllNotificationsAsRead,
+    deleteNotification,
   };
 
   return (

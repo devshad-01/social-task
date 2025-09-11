@@ -97,7 +97,7 @@ export const NotificationCard = ({
   };
 
   return (
-    <Card className={`${highlight ? 'ring-2 ring-primary-500 border-primary-400' : ''} ${!notification.read ? getTypeColor(notification.type) : ''} hover:shadow-md transition-shadow`} onClick={onClick}>
+    <Card className={`${highlight ? 'ring-2 ring-primary-500 border-primary-400' : ''} ${!notification.read ? getTypeColor(notification.type) : ''} hover:shadow-md transition-shadow`}>
       <CardContent padding="md">
         <div className="flex items-start space-x-3">
           <div className="flex-shrink-0">
@@ -105,21 +105,25 @@ export const NotificationCard = ({
           </div>
           
           <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-gray-900">
-                {notification.title}
+            {/* Clickable notification content */}
+            <div 
+              className="cursor-pointer"
+              onClick={onClick}
+            >
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium text-gray-900">
+                  {notification.title}
+                </p>
+                {!notification.read && (
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                )}
+              </div>
+              
+              <p className="text-sm text-gray-600 mt-1">
+                {notification.message}
               </p>
-              {!notification.read && (
-                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              )}
-            </div>
-            
-            <p className="text-sm text-gray-600 mt-1">
-              {notification.message}
-            </p>
-            
-            <div className="flex items-center justify-between mt-2">
-              <div className="flex items-center space-x-2">
+              
+              <div className="flex items-center space-x-2 mt-2">
                 {notification.actor && (
                   <Avatar 
                     src={notification.actor.avatar}
@@ -132,38 +136,37 @@ export const NotificationCard = ({
                   {formatTimeAgo(notification.createdAt)}
                 </span>
               </div>
-              
-              <div className="flex items-center space-x-2">
-                {notification.actionUrl && (
-                  <Button 
-                    size="sm" 
-                    variant="primary"
-                    onClick={() => onAction?.(notification)}
-                  >
-                    View
-                  </Button>
-                )}
-                
-                {!notification.read && (
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => onMarkAsRead?.(notification)}
-                  >
-                    Mark as read
-                  </Button>
-                )}
-                
+            </div>
+            
+            {/* Action buttons - separate from clickable area */}
+            <div className="flex items-center justify-end space-x-2 mt-3">
+              {!notification.read && (
                 <Button 
                   size="sm" 
-                  variant="ghost"
-                  onClick={() => onDelete?.(notification)}
+                  variant="outline"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMarkAsRead?.(notification);
+                  }}
+                  className="text-xs px-2 py-1"
                 >
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
+                  Mark as read
                 </Button>
-              </div>
+              )}
+              
+              <Button 
+                size="sm" 
+                variant="ghost"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete?.(notification);
+                }}
+                className="text-xs px-1 py-1"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1 1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </Button>
             </div>
           </div>
         </div>

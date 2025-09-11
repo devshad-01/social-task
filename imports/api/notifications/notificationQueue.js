@@ -186,7 +186,10 @@ export const NotificationQueueService = {
         // Import WebPushServer here to avoid circular dependency
         const { sendPushNotificationToUser } = await import('./webPushServer.js');
         
-        // Send the notification
+        // Always create database notification first (for UI display)
+        await this.createDatabaseNotification(notification);
+        
+        // Send the push notification
         const result = await sendPushNotificationToUser({
           userId: notification.userId,
           title: notification.title,
@@ -196,33 +199,33 @@ export const NotificationQueueService = {
         });
         
         if (result.success) {
-          // Mark as sent
+          // Mark as sent (both push and database)
           await NotificationQueue.updateAsync(notification._id, {
             $set: {
               status: NOTIFICATION_STATUS.SENT,
               sentAt: new Date(),
-              updatedAt: new Date()
+              updatedAt: new Date(),
+              deliveryMethod: 'both',
+              notes: 'Sent via push notification and stored in database'
             }
           });
           
           this.logOperation('SENT', notification._id, { 
             userId: notification.userId,
             title: notification.title,
-            retryCount: notification.retryCount
+            retryCount: notification.retryCount,
+            deliveryMethod: 'both'
           });
           
         } else {
-          // Push notification failed, try database notification as fallback
-          await this.createDatabaseNotification(notification);
-          
-          // Mark as sent via database
+          // Push failed but database notification was created
           await NotificationQueue.updateAsync(notification._id, {
             $set: {
               status: NOTIFICATION_STATUS.SENT,
               sentAt: new Date(),
               updatedAt: new Date(),
               deliveryMethod: 'database',
-              notes: `Push failed: ${result.error || 'Unknown error'}, saved to database`
+              notes: `Push failed: ${result.error || 'Unknown error'}, but saved to database`
             }
           });
           
@@ -247,20 +250,36 @@ export const NotificationQueueService = {
     try {
       const { InAppNotifications } = await import('./InAppNotifications');
       
+      // Extract notification type from data or determine from title/message
+      let notificationType = 'system';
+      if (notification.data?.type) {
+        notificationType = notification.data.type;
+      } else if (notification.title?.includes('Task') || notification.message?.includes('task')) {
+        if (notification.title?.includes('assigned') || notification.message?.includes('assigned')) {
+          notificationType = 'task_assigned';
+        } else if (notification.title?.includes('completed') || notification.message?.includes('completed')) {
+          notificationType = 'task_completed';
+        } else if (notification.title?.includes('due') || notification.message?.includes('due')) {
+          notificationType = 'task_due';
+        } else {
+          notificationType = 'task_update';
+        }
+      }
+      
       await InAppNotifications.insertAsync({
         userId: notification.userId,
         title: notification.title,
         message: notification.message,
         actionUrl: notification.actionUrl,
         data: notification.data,
-        type: 'system',
+        type: notificationType,
         priority: notification.priority,
         read: false,
         createdAt: new Date(),
         expiresAt: notification.expiresAt
       });
       
-      console.log(`[NotificationQueue] Created database notification for user ${notification.userId}`);
+      console.log(`[NotificationQueue] Created database notification for user ${notification.userId} (type: ${notificationType})`);
     } catch (error) {
       console.error('[NotificationQueue] Failed to create database notification:', error);
     }

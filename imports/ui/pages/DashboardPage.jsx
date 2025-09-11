@@ -796,7 +796,6 @@ export const DashboardPage = ({ activeTab }) => {
           {/* Search and Filter Bar */}
           <div className="search-filter-bar">
             <div className="search-input-wrapper">
-              <Icons.searchCustom className="search-icon-custom" />
               <input
                 type="text"
                 placeholder="Search tasks..."
@@ -902,11 +901,6 @@ export const DashboardPage = ({ activeTab }) => {
             </div>
           </div>
         </div>
-
-        {/* Floating Action Button */}
-        {canCreateTasks && (
-          <FloatingActionButton onClick={() => navigate('/add-task')} />
-        )}
 
         {/* Task Details Modal */}
         {selectedTask && (

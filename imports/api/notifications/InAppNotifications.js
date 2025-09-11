@@ -80,6 +80,29 @@ export const InAppNotificationMethods = {
   },
 
   /**
+   * Delete a specific notification
+   */
+  'inAppNotifications.delete': async function(notificationId) {
+    check(notificationId, String);
+    
+    if (!this.userId) {
+      throw new Meteor.Error('unauthorized', 'Must be logged in');
+    }
+
+    const notification = await InAppNotifications.findOneAsync({
+      _id: notificationId,
+      userId: this.userId
+    });
+
+    if (!notification) {
+      throw new Meteor.Error('not-found', 'Notification not found');
+    }
+
+    const result = await InAppNotifications.removeAsync(notificationId);
+    return result;
+  },
+
+  /**
    * Delete old read notifications
    */
   'inAppNotifications.cleanup': async function(daysOld = 30) {

@@ -468,7 +468,6 @@ export const DashboardPage = () => {
         {/* Search and Filter Bar */}
         <div className="search-filter-bar">
           <div className="search-input-wrapper">
-            <Icons.search className="search-icon" />
             <input
               type="text"
               placeholder="Search tasks..."

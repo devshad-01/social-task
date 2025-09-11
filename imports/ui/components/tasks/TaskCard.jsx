@@ -5,6 +5,7 @@ import { Badge } from '../common/Badge';
 import { Avatar } from '../common/Avatar';
 import { Button } from '../common/Button';
 import { Icons } from '../Icons';
+import { useRole } from '../../hooks/useRole';
 
 export const TaskCard = ({ 
   task, 
@@ -16,6 +17,8 @@ export const TaskCard = ({
   showActions = true,
   compact = false 
 }) => {
+  const { isAdmin, canCreateTasks } = useRole();
+  
   const getStatusVariant = (status) => {
     switch (status) {
       case 'completed':
@@ -202,7 +205,7 @@ export const TaskCard = ({
                   </Button>
                 )}
                 
-                {onEdit && (
+                {onEdit && canCreateTasks && (
                   <Button 
                     size="sm" 
                     variant="outline"
